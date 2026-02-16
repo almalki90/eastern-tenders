@@ -160,11 +160,10 @@ async function scrapeTenders() {
     isEasternProvince(tender.description)
   );
   
-  // إضافة بيانات وهمية للتجربة إذا لم نجد بيانات
+  // التحقق من وجود بيانات
   if (easternTenders.length === 0) {
-    console.log('⚠️  لم يتم العثور على بيانات حقيقية، إضافة بيانات تجريبية...');
-    const mockData = generateMockTenders();
-    easternTenders.push(...mockData);
+    console.log('⚠️  لم يتم العثور على مناقصات في المنطقة الشرقية');
+    console.log('💡 تأكد من أن المواقع تعمل بشكل صحيح');
   }
   
   // إضافة معلومات إضافية
@@ -203,45 +202,6 @@ function extractRegion(text) {
   }
   
   return 'المنطقة الشرقية';
-}
-
-// توليد بيانات تجريبية للتطوير
-function generateMockTenders() {
-  const cities = ['الدمام', 'الخبر', 'الظهران', 'القطيف', 'الجبيل', 'الأحساء', 'حفر الباطن'];
-  const types = ['صيانة', 'إنشاء', 'توريد', 'تشغيل', 'استشارات'];
-  const entities = [
-    'أمانة المنطقة الشرقية',
-    'وزارة التعليم',
-    'وزارة الصحة',
-    'أرامكو السعودية',
-    'الهيئة الملكية للجبيل',
-    'شركة الكهرباء'
-  ];
-  
-  const mockTenders = [];
-  
-  for (let i = 0; i < 15; i++) {
-    const city = cities[Math.floor(Math.random() * cities.length)];
-    const type = types[Math.floor(Math.random() * types.length)];
-    const entity = entities[Math.floor(Math.random() * entities.length)];
-    
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 30) + 5);
-    
-    mockTenders.push({
-      id: `mock-${Date.now()}-${i}`,
-      title: `مناقصة ${type} في ${city}`,
-      description: `مناقصة لأعمال ${type} في منطقة ${city} - المنطقة الشرقية`,
-      location: city,
-      deadline: futureDate.toISOString().split('T')[0],
-      entity: entity,
-      link: `https://www.monafasat.gov.sa/tender/${i}`,
-      source: 'بيانات تجريبية',
-      status: 'active'
-    });
-  }
-  
-  return mockTenders;
 }
 
 // تشغيل السكريبت
