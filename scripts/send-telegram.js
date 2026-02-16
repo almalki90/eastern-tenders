@@ -210,17 +210,6 @@ async function sendNewTenders() {
 
     if (newTenders.length === 0) {
       console.log('✅ لا توجد مناقصات جديدة للإرسال');
-      
-      const confirmMessage = `✅ <b>تحديث نظام المناقصات</b>
-
-⏰ الوقت: ${formatDateTime(new Date())}
-📊 إجمالي المناقصات: ${tenders.length}
-✨ مناقصات جديدة: 0
-
-💡 لا توجد مناقصات جديدة في هذا التحديث.`;
-
-      await sendTelegramMessage(confirmMessage, chatId);
-      console.log('✅ تم إرسال رسالة التأكيد');
       return;
     }
 
@@ -228,18 +217,7 @@ async function sendNewTenders() {
     const newTendersList = newTenders.filter(t => t.type === 'tender');
     const newAwardsList = newTenders.filter(t => t.type === 'award');
 
-    // إرسال رسالة البداية
-    const headerMessage = `🔔 <b>تحديث جديد</b>
-
-⏰ الوقت: ${formatDateTime(new Date())}
-📊 إجمالي البيانات: ${tenders.length}
-✨ جديد: ${newTendersList.length} مناقصة + ${newAwardsList.length} ترسية
-
-━━━━━━━━━━━━━━━━━`;
-
-    await sendTelegramMessage(headerMessage, chatId);
-    console.log('✅ تم إرسال رسالة البداية\n');
-    await sleep(1000);
+    console.log(`📊 سيتم إرسال: ${newTendersList.length} مناقصة + ${newAwardsList.length} ترسية\n`);
 
     // إرسال كل عنصر جديد
     let successCount = 0;
@@ -286,22 +264,6 @@ async function sendNewTenders() {
       totalSent: sentIds.size
     });
 
-    // إرسال رسالة النهاية
-    const footerMessage = `━━━━━━━━━━━━━━━━━
-✅ <b>اكتمل الإرسال</b>
-
-📊 نجح: ${successCount}
-❌ فشل: ${failCount}
-📈 إجمالي المرسل: ${sentIds.size}
-
-🔗 عرض جميع المناقصات:
-https://almalki90.github.io/eastern-tenders
-
-📡 الاشتراك في RSS:
-https://almalki90.github.io/eastern-tenders/feed.xml`;
-
-    await sendTelegramMessage(footerMessage, chatId);
-    
     console.log('\n✨ اكتملت العملية بنجاح!');
     console.log(`📊 الإحصائيات النهائية:`);
     console.log(`   ✅ نجح: ${successCount}`);
