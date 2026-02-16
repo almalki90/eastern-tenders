@@ -1,31 +1,32 @@
 {
-  "name": "eastern-province-tenders",
-  "version": "1.0.0",
-  "description": "نظام ذكي لجمع وعرض المناقصات والترسيات في المنطقة الشرقية",
-  "main": "scraper/index.js",
+  "name": "decor-ideas-bot",
+  "version": "2.0.0",
+  "description": "🎨 بوت Telegram احترافي لأفكار الديكور المنزلي",
+  "main": "decor-bot.js",
   "type": "module",
   "scripts": {
-    "scrape": "node scraper/index.js",
-    "mock": "node scripts/generate-mock-data.js",
-    "generate-rss": "node scripts/generate-rss.js",
-    "telegram": "node scripts/send-telegram.js",
-    "build": "npm run mock && npm run generate-rss && cp -r data public/",
-    "build:real": "npm run scrape && npm run generate-rss && cp -r data public/",
-    "dev": "python3 -m http.server 8000",
-    "test": "node scraper/test.js"
+    "start": "node decor-bot.js",
+    "bot": "node decor-bot.js",
+    "test": "node telegram-bot.js",
+    "test:pexels": "node -e \"import('./pexels-service.js').then(m => m.testPexelsAPI())\"",
+    "send": "node telegram-bot.js"
   },
   "keywords": [
-    "tenders",
-    "المناقصات",
-    "المنطقة الشرقية",
-    "الدمام",
-    "RSS"
+    "telegram",
+    "bot",
+    "decor",
+    "ديكور",
+    "تصميم داخلي",
+    "pexels"
   ],
   "author": "almalki90",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.13.5",
     "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^17.3.1",
+    "node-cron": "^4.2.1",
+    "node-telegram-bot-api": "^0.67.0",
     "playwright": "^1.40.0"
   }
 }
