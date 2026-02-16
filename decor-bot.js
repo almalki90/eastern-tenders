@@ -365,13 +365,13 @@ bot.on('message', async (msg) => {
       
       // التحقق من نوع الصورة (Unsplash أو محلية)
       if (image.isUnsplash) {
-        // إرسال صورة من Unsplash
+        // إرسال صورة من Unsplash (ديكورات)
         const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
 
 📝 ${image.categoryDescription}
 
-💡 *${getRandomTip()}*
+💡 احفظ الصورة ثم استخدمها للبحث عن المنتج في جوجل
         `.trim();
         
         await bot.sendPhoto(chatId, image.url, {
@@ -383,13 +383,13 @@ ${image.categoryEmoji} *${image.categoryName}*
         // إرسال صورة محلية (أثاث)
         const photoBuffer = fs.readFileSync(image.path);
         
-        // عرض اسم المنتج في كل صورة (مع النصيحة)
+        // عرض اسم المنتج مع تعليمات البحث
         const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
 
 📝 ${image.description}
 
-💡 *${getRandomTip()}*
+💡 احفظ الصورة ثم استخدمها للبحث عن المنتج في جوجل
         `.trim();
         
         // إعداد الأزرار حسب نوع القسم
@@ -423,26 +423,6 @@ ${image.categoryEmoji} *${image.categoryName}*
       if (i < images.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 300));
       }
-    }
-    
-    // إرسال تعليمات البحث بعد كل الصور (فقط للأثاث)
-    if (selectedSource === 'furniture') {
-      const instructionsMessage = `
-📌 *كيف تبحث عن المنتج؟*
-
-1️⃣ اضغط على زر *"🔍 ابحث عن هذا المنتج بالصورة"* تحت الصورة
-2️⃣ ستفتح صفحة *Google Images*
-3️⃣ اضغط على أيقونة *الكاميرا* 📷 في شريط البحث
-4️⃣ *احفظ الصورة* من Telegram على جهازك
-5️⃣ *ارفع الصورة* في Google Images
-6️⃣ ستظهر لك نتائج *منتجات مطابقة* أو *مشابهة*! 🎯
-
-💡 *نصيحة:* استخدم اسم المنتج الظاهر في البطاقة للبحث الأدق
-      `.trim();
-      
-      await bot.sendMessage(chatId, instructionsMessage, {
-        parse_mode: 'Markdown'
-      });
     }
     
     // إرسال keyboard للاختيار
