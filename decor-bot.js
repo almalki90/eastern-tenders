@@ -366,54 +366,44 @@ bot.on('message', async (msg) => {
       // التحقق من نوع الصورة (Unsplash أو محلية)
       if (image.isUnsplash) {
         // إرسال صورة من Unsplash
-        const caption = i === 0 ? `
+        const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
 
 📝 ${image.categoryDescription}
 
 💡 *${getRandomTip()}*
-        `.trim() : `💡 *${getRandomTip()}*`;
+        `.trim();
         
         await bot.sendPhoto(chatId, image.url, {
           caption: caption,
-          parse_mode: 'Markdown',
-          ...(i === images.length - 1 ? getCategoryKeyboard(selectedSource) : {})
+          parse_mode: 'Markdown'
         });
         
       } else {
         // إرسال صورة محلية (أثاث)
         const photoBuffer = fs.readFileSync(image.path);
         
-        const caption = i === 0 ? `
+        // عرض اسم المنتج في كل صورة (مع النصيحة)
+        const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
 
 📝 ${image.description}
 
 💡 *${getRandomTip()}*
-        `.trim() : `💡 *${getRandomTip()}*`;
+        `.trim();
         
         // إعداد الأزرار حسب نوع القسم
         let replyMarkup = {};
         
         if (selectedSource === 'furniture') {
-          // أزرار البحث عن المنتج (فقط للأثاث)
+          // زر واحد فقط: البحث بالصورة في Google
           replyMarkup = {
             reply_markup: {
               inline_keyboard: [
                 [
                   { 
-                    text: '🔍 ابحث عن هذا المنتج', 
-                    url: `https://www.google.com/search?q=${encodeURIComponent(image.categoryName + ' furniture')}&tbm=isch`
-                  }
-                ],
-                [
-                  { 
-                    text: '🛒 Amazon', 
-                    url: `https://www.amazon.com/s?k=${encodeURIComponent(image.categoryName + ' furniture')}`
-                  },
-                  { 
-                    text: '🛍️ IKEA', 
-                    url: `https://www.ikea.com/sa/en/search/?q=${encodeURIComponent(image.categoryName)}`
+                    text: '🔍 ابحث عن هذا المنتج بالصورة', 
+                    url: 'https://images.google.com/'
                   }
                 ]
               ]
@@ -421,33 +411,12 @@ ${image.categoryEmoji} *${image.categoryName}*
           };
         }
         
-        // دمج reply_markup مع keyboard إذا كانت آخر صورة
-        if (i === images.length - 1) {
-          if (selectedSource === 'furniture') {
-            // للأثاث: أزرار بحث + keyboard
-            await bot.sendPhoto(chatId, photoBuffer, {
-              caption: caption,
-              parse_mode: 'Markdown',
-              ...replyMarkup
-            });
-            // إرسال keyboard بشكل منفصل
-            await bot.sendMessage(chatId, '📱 اختر فئة أخرى:', getCategoryKeyboard(selectedSource));
-          } else {
-            // للديكورات: keyboard فقط
-            await bot.sendPhoto(chatId, photoBuffer, {
-              caption: caption,
-              parse_mode: 'Markdown',
-              ...getCategoryKeyboard(selectedSource)
-            });
-          }
-        } else {
-          // ليست آخر صورة
-          await bot.sendPhoto(chatId, photoBuffer, {
-            caption: caption,
-            parse_mode: 'Markdown',
-            ...replyMarkup
-          });
-        }
+        // إرسال الصورة مع الأزرار
+        await bot.sendPhoto(chatId, photoBuffer, {
+          caption: caption,
+          parse_mode: 'Markdown',
+          ...replyMarkup
+        });
       }
       
       // تأخير صغير بين الصور
@@ -455,6 +424,29 @@ ${image.categoryEmoji} *${image.categoryName}*
         await new Promise(resolve => setTimeout(resolve, 300));
       }
     }
+    
+    // إرسال تعليمات البحث بعد كل الصور (فقط للأثاث)
+    if (selectedSource === 'furniture') {
+      const instructionsMessage = `
+📌 *كيف تبحث عن المنتج؟*
+
+1️⃣ اضغط على زر *"🔍 ابحث عن هذا المنتج بالصورة"* تحت الصورة
+2️⃣ ستفتح صفحة *Google Images*
+3️⃣ اضغط على أيقونة *الكاميرا* 📷 في شريط البحث
+4️⃣ *احفظ الصورة* من Telegram على جهازك
+5️⃣ *ارفع الصورة* في Google Images
+6️⃣ ستظهر لك نتائج *منتجات مطابقة* أو *مشابهة*! 🎯
+
+💡 *نصيحة:* استخدم اسم المنتج الظاهر في البطاقة للبحث الأدق
+      `.trim();
+      
+      await bot.sendMessage(chatId, instructionsMessage, {
+        parse_mode: 'Markdown'
+      });
+    }
+    
+    // إرسال keyboard للاختيار
+    await bot.sendMessage(chatId, '📱 اختر فئة أخرى:', getCategoryKeyboard(selectedSource));
     
     console.log(`✅ تم إرسال 6 صور من ${images[0].categoryName} [${selectedSource}] → ${msg.from.first_name}`);
     
