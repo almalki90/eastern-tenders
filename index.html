@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مناقصات المنطقة الشرقية | Eastern Province Tenders</title>
+    <meta name="description" content="نظام ذكي لجمع وعرض المناقصات والترسيات في المنطقة الشرقية - الدمام، الخبر، الظهران، القطيف، الجبيل، الأحساء">
+    <meta name="keywords" content="مناقصات، ترسيات، المنطقة الشرقية، الدمام، الخبر، الظهران">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="مناقصات المنطقة الشرقية">
+    <meta property="og:description" content="آخر المناقصات والترسيات في المنطقة الشرقية">
+    <meta property="og:type" content="website">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Arabic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .tender-card {
+            transition: all 0.3s ease;
+        }
+        
+        .tender-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-xl">
+                        <i class="fas fa-file-contract text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">مناقصات المنطقة الشرقية</h1>
+                        <p class="text-sm text-gray-600">Eastern Province Tenders</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <a href="feed.xml" target="_blank" 
+                       class="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition">
+                        <i class="fas fa-rss"></i>
+                        <span class="hidden md:inline">RSS Feed</span>
+                    </a>
+                    <a href="https://github.com/almalki90/eastern-tenders" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition">
+                        <i class="fab fa-github"></i>
+                        <span class="hidden md:inline">GitHub</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6 fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">إجمالي المناقصات</p>
+                        <p class="text-3xl font-bold text-blue-600" id="total-count">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-xl">
+                        <i class="fas fa-file-alt text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">مناقصات نشطة</p>
+                        <p class="text-3xl font-bold text-green-600" id="active-count">0</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded-xl">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">المناطق</p>
+                        <p class="text-3xl font-bold text-purple-600" id="regions-count">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded-xl">
+                        <i class="fas fa-map-marker-alt text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">آخر تحديث</p>
+                        <p class="text-lg font-bold text-orange-600" id="last-update">--</p>
+                    </div>
+                    <div class="bg-orange-100 p-4 rounded-xl">
+                        <i class="fas fa-clock text-orange-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8 fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-search ml-2"></i>بحث
+                    </label>
+                    <input type="text" id="search-input" 
+                           placeholder="ابحث في المناقصات..."
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt ml-2"></i>المنطقة
+                    </label>
+                    <select id="region-filter" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">جميع المناطق</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-building ml-2"></i>الجهة
+                    </label>
+                    <select id="entity-filter" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">جميع الجهات</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-sort ml-2"></i>الترتيب
+                    </label>
+                    <select id="sort-filter" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="newest">الأحدث أولاً</option>
+                        <option value="deadline">آخر موعد</option>
+                        <option value="title">الاسم (أ-ي)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-4 flex justify-end">
+                <button id="reset-filters" 
+                        class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition flex items-center gap-2">
+                    <i class="fas fa-redo"></i>
+                    <span>إعادة تعيين</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tenders Grid -->
+        <div id="loading" class="text-center py-12">
+            <i class="fas fa-spinner loading text-5xl text-blue-600"></i>
+            <p class="text-gray-600 mt-4">جاري تحميل المناقصات...</p>
+        </div>
+        
+        <div id="tenders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- Tenders will be loaded here -->
+        </div>
+        
+        <div id="no-results" class="text-center py-12 hidden">
+            <i class="fas fa-inbox text-5xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600">لم يتم العثور على نتائج</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-gray-600 text-sm">
+                    <p>© 2024 مناقصات المنطقة الشرقية | جميع الحقوق محفوظة</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="feed.xml" class="text-gray-600 hover:text-orange-600 transition">
+                        <i class="fas fa-rss"></i> RSS Feed
+                    </a>
+                    <a href="atom.xml" class="text-gray-600 hover:text-blue-600 transition">
+                        <i class="fas fa-atom"></i> Atom Feed
+                    </a>
+                    <a href="data/tenders.json" class="text-gray-600 hover:text-green-600 transition">
+                        <i class="fas fa-code"></i> JSON API
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
