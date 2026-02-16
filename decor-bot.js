@@ -1,6 +1,6 @@
 /**
- * بوت ديكور تفاعلي - نظام اختيار المصادر
- * يسمح للمستخدم باختيار المصدر أولاً ثم التصنيف
+ * بوت ديكور تفاعلي - مقسم إلى أثاث وديكورات
+ * يسمح للمستخدم باختيار القسم أولاً ثم التصنيف
  */
 
 import TelegramBot from 'node-telegram-bot-api';
@@ -12,50 +12,33 @@ dotenv.config();
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 
-console.log('🤖 بوت الديكور يعمل الآن (نظام اختيار المصادر)...\n');
+console.log('🤖 بوت الديكور يعمل الآن (أثاث + ديكورات)...\n');
 
 // عرض الإحصائيات عند بدء التشغيل
 const stats = getDetailedStats();
 console.log(`📦 إجمالي الصور المتاحة: ${stats.total.toLocaleString('ar-EG')}`);
-console.log(`🗂️ عدد المصادر: ${Object.keys(stats.sources).length}`);
 console.log(`📂 عدد التصنيفات: ${Object.keys(stats.categories).length}\n`);
 
-// تخزين اختيار المستخدم للمصدر
+// تخزين اختيار المستخدم للقسم
 const userSourceSelection = {};
 
 /**
- * معلومات المصادر
+ * معلومات الأقسام - مقسمة إلى أثاث وديكورات
  */
 const SOURCES = {
-  ikea1: {
-    name: 'IKEA Original',
-    description: '2,532 صورة - أثاث ومنتجات IKEA الأصلية',
-    emoji: '🇸🇪',
-    categories: ['غرف_نوم', 'كراسي', 'ساعات', 'غرف_معيشة', 'طاولات_طعام', 'نباتات', 'قطع_ديكور']
+  furniture: {
+    name: 'أثاث',
+    description: '26,127 صورة - أثاث وغرف كاملة',
+    emoji: '🪑',
+    type: 'furniture',
+    categories: ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل', 'كراسي', 'ساعات', 'نباتات', 'قطع_ديكور']
   },
-  ikea2: {
-    name: 'IKEA Extended',
-    description: '5,024 صورة - غرف IKEA الكاملة',
-    emoji: '🏠',
-    categories: ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل']
-  },
-  huggingface: {
-    name: 'HuggingFace Collection',
-    description: '18,571 صورة - غرف كاملة متنوعة',
-    emoji: '🤗',
-    categories: ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل', 'كراسي', 'قطع_ديكور']
-  },
-  unsplash: {
-    name: 'Unsplash Decor',
-    description: 'ملايين الصور - ديكور حقيقي من Unsplash',
-    emoji: '📸',
+  decor: {
+    name: 'ديكورات',
+    description: 'ملايين الصور - ديكور حقيقي',
+    emoji: '🎨',
+    type: 'decor',
     categories: ['شموع', 'إضاءة', 'فازات', 'مرايا', 'لوحات_فنية', 'ديكورات_صغيرة']
-  },
-  all: {
-    name: 'جميع المصادر',
-    description: '26,127+ صورة - كل المصادر مدمجة',
-    emoji: '🌐',
-    categories: Object.keys(CATEGORIES)
   }
 };
 
@@ -80,16 +63,12 @@ function getRandomTip() {
 }
 
 /**
- * أزرار اختيار المصدر
+ * أزرار اختيار القسم (أثاث / ديكورات)
  */
 const sourceKeyboard = {
   reply_markup: {
     keyboard: [
-      ['🇸🇪 IKEA Original'],
-      ['🏠 IKEA Extended'],
-      ['🤗 HuggingFace Collection'],
-      ['📸 Unsplash Decor'],
-      ['🌐 جميع المصادر'],
+      ['🪑 أثاث', '🎨 ديكورات'],
       ['📊 الإحصائيات']
     ],
     resize_keyboard: true
@@ -97,7 +76,7 @@ const sourceKeyboard = {
 };
 
 /**
- * إنشاء أزرار التصنيفات حسب المصدر المختار
+ * إنشاء أزرار التصنيفات حسب القسم المختار
  */
 function getCategoryKeyboard(sourceKey) {
   const source = SOURCES[sourceKey];
@@ -126,7 +105,7 @@ function getCategoryKeyboard(sourceKey) {
   }
   
   // إضافة أزرار إضافية
-  buttons.push(['🎲 مفاجأة', '🔙 المصادر']);
+  buttons.push(['🎲 مفاجأة', '🔙 الأقسام']);
   
   return {
     reply_markup: {
@@ -151,7 +130,7 @@ async function setMenuButton(chatId) {
     // تعيين قائمة الأوامر
     await bot.setMyCommands([
       { command: 'start', description: 'بدء البوت' },
-      { command: 'sources', description: 'اختيار المصدر' },
+      { command: 'sources', description: 'اختيار القسم' },
       { command: 'stats', description: 'الإحصائيات' },
       { command: 'help', description: 'المساعدة' }
     ], { scope: { type: 'chat', chat_id: chatId } });
@@ -178,14 +157,14 @@ bot.onText(/\/start/, async (msg) => {
 
 📦 *المحتوى المتاح:*
 • *${stats.total.toLocaleString('ar-EG')} صورة* حقيقية
-• *${Object.keys(SOURCES).length - 1} مصادر* متنوعة
-• *${Object.keys(CATEGORIES).length} تصنيفات* مختلفة
+• *${Object.keys(SOURCES).length} قسمين* (أثاث + ديكورات)
+• *${Object.keys(CATEGORIES).length} تصنيفاً* مختلفاً
 
-🔹 اختر المصدر أولاً من الأزرار أدناه
+🔹 اختر القسم من الأزرار أدناه
 🔹 ثم اختر التصنيف الذي تريد
 🔹 أو استخدم الأوامر من القائمة الزرقاء ☰
 
-📌 اختر المصدر:
+📌 اختر القسم:
   `.trim();
   
   bot.sendMessage(chatId, welcomeMessage, {
@@ -195,33 +174,23 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 /**
- * أمر المصادر
+ * أمر الأقسام
  */
 bot.onText(/\/sources/, (msg) => {
   const chatId = msg.chat.id;
   
   const sourcesMessage = `
-🗂️ *اختر المصدر المناسب:*
+🗂️ *اختر القسم المناسب:*
 
-🇸🇪 *IKEA Original*
-• ${SOURCES.ikea1.description}
-• التصنيفات: غرف نوم، كراسي، ساعات، غرف معيشة، طاولات، نباتات، قطع ديكور
+🪑 *أثاث*
+• ${SOURCES.furniture.description}
+• غرف كاملة وأثاث منزلي متنوع
+• التصنيفات: غرف نوم، حمامات، مطابخ، غرف معيشة، إلخ
 
-🏠 *IKEA Extended*  
-• ${SOURCES.ikea2.description}
-• التصنيفات: غرف نوم، حمامات، مطابخ، غرف معيشة، طاولات، مداخل
-
-🤗 *HuggingFace Collection*
-• ${SOURCES.huggingface.description}
-• التصنيفات: غرف نوم، حمامات، مطابخ، غرف معيشة، طاولات، مداخل، كراسي، قطع ديكور
-
-📸 *Unsplash Decor* (جديد!)
-• ${SOURCES.unsplash.description}
-• التصنيفات: شموع، إضاءة، فازات، مرايا، لوحات فنية، ديكورات صغيرة
-
-🌐 *جميع المصادر*
-• ${SOURCES.all.description}
-• جميع التصنيفات متاحة
+🎨 *ديكورات*
+• ${SOURCES.decor.description}
+• شموع، مرايا، لوحات، إضاءة، فازات
+• التصنيفات: شموع، إضاءة، فازات، مرايا، إلخ
 
 اختر من الأزرار أدناه 👇
   `.trim();
@@ -243,18 +212,18 @@ bot.onText(/\/help/, (msg) => {
 
 🔹 *الأوامر المتاحة:*
 /start - بدء البوت
-/sources - اختيار المصدر
+/sources - اختيار القسم
 /stats - إحصائيات مفصلة
 /help - عرض المساعدة
 
 🔹 *طريقة الاستخدام:*
-1️⃣ اختر المصدر (IKEA Original / Extended / الكل)
-2️⃣ اختر التصنيف (غرف نوم، مطابخ، إلخ)
+1️⃣ اختر القسم (أثاث أو ديكورات)
+2️⃣ اختر التصنيف (غرف نوم، شموع، إلخ)
 3️⃣ استمتع بالصور والنصائح!
 
 💡 *نصيحة:* استخدم القائمة الزرقاء ☰ للوصول السريع للأوامر
 
-🌐 المصادر: GitHub Open Source
+🌐 المصادر: GitHub Open Source + Unsplash API
   `.trim();
   
   bot.sendMessage(chatId, helpMessage, {
@@ -289,50 +258,12 @@ function sendDetailedStats(chatId) {
     statsMessage += `${cat.emoji} ${cat.name}: ${cat.count.toLocaleString('ar-EG')}\n`;
   }
   
-  statsMessage += `\n🌐 GitHub Open Source Datasets`;
+  statsMessage += `\n🌐 GitHub Open Source + Unsplash API`;
   
   bot.sendMessage(chatId, statsMessage, {
     parse_mode: 'Markdown',
     ...sourceKeyboard
   });
-}
-
-/**
- * جلب الصور من مصدر محدد
- */
-async function getImageFromSource(categoryKey, sourceKey) {
-  // إذا كان المصدر "unsplash" استخدم API مباشرة
-  if (sourceKey === 'unsplash') {
-    return await getRandomImage(categoryKey);
-  }
-  
-  // إذا كان المصدر "all" استخدم الطريقة العادية
-  if (sourceKey === 'all') {
-    return await getRandomImage(categoryKey);
-  }
-  
-  // جلب صورة من مصدر محدد
-  const category = CATEGORIES[categoryKey];
-  if (!category || !category.sources[sourceKey] || category.sources[sourceKey].length === 0) {
-    throw new Error(`هذا التصنيف غير متوفر في المصدر المختار`);
-  }
-  
-  const image = await getRandomImage(categoryKey);
-  
-  // تأكد أن الصورة من المصدر المطلوب
-  let attempts = 0;
-  const maxAttempts = 50;
-  
-  while (image.sourceKey !== sourceKey && attempts < maxAttempts) {
-    const newImage = await getRandomImage(categoryKey);
-    if (newImage.sourceKey === sourceKey) {
-      return newImage;
-    }
-    attempts++;
-  }
-  
-  // إذا لم نجد صورة من المصدر المحدد، أرجع أي صورة
-  return image;
 }
 
 /**
@@ -345,76 +276,38 @@ bot.on('message', async (msg) => {
   // تجاهل الأوامر
   if (text?.startsWith('/')) return;
   
-  // اختيار المصدر
-  if (text?.includes('IKEA Original') || text?.includes('🇸🇪')) {
-    userSourceSelection[chatId] = 'ikea1';
+  // اختيار قسم الأثاث
+  if (text?.includes('أثاث') || text?.includes('🪑')) {
+    userSourceSelection[chatId] = 'furniture';
     
     bot.sendMessage(chatId, 
-      `✅ تم اختيار: *IKEA Original*\n\n${SOURCES.ikea1.description}\n\nاختر التصنيف:`,
+      `✅ تم اختيار: *أثاث*\n\n${SOURCES.furniture.description}\n\nاختر التصنيف:`,
       {
         parse_mode: 'Markdown',
-        ...getCategoryKeyboard('ikea1')
+        ...getCategoryKeyboard('furniture')
       }
     );
     return;
   }
   
-  if (text?.includes('IKEA Extended') || text?.includes('🏠')) {
-    userSourceSelection[chatId] = 'ikea2';
+  // اختيار قسم الديكورات
+  if (text?.includes('ديكورات') || text?.includes('🎨')) {
+    userSourceSelection[chatId] = 'decor';
     
     bot.sendMessage(chatId,
-      `✅ تم اختيار: *IKEA Extended*\n\n${SOURCES.ikea2.description}\n\nاختر التصنيف:`,
+      `✅ تم اختيار: *ديكورات*\n\n${SOURCES.decor.description}\n\nاختر التصنيف:`,
       {
         parse_mode: 'Markdown',
-        ...getCategoryKeyboard('ikea2')
+        ...getCategoryKeyboard('decor')
       }
     );
     return;
   }
   
-  if (text?.includes('HuggingFace') || text?.includes('🤗')) {
-    userSourceSelection[chatId] = 'huggingface';
-    
-    bot.sendMessage(chatId,
-      `✅ تم اختيار: *HuggingFace Collection*\n\n${SOURCES.huggingface.description}\n\nاختر التصنيف:`,
-      {
-        parse_mode: 'Markdown',
-        ...getCategoryKeyboard('huggingface')
-      }
-    );
-    return;
-  }
-  
-  if (text?.includes('Unsplash') || text?.includes('📸')) {
-    userSourceSelection[chatId] = 'unsplash';
-    
-    bot.sendMessage(chatId,
-      `✅ تم اختيار: *Unsplash Decor*\n\n${SOURCES.unsplash.description}\n\nاختر التصنيف:`,
-      {
-        parse_mode: 'Markdown',
-        ...getCategoryKeyboard('unsplash')
-      }
-    );
-    return;
-  }
-  
-  if (text?.includes('جميع المصادر') || text?.includes('🌐')) {
-    userSourceSelection[chatId] = 'all';
-    
-    bot.sendMessage(chatId,
-      `✅ تم اختيار: *جميع المصادر*\n\n${SOURCES.all.description}\n\nاختر التصنيف:`,
-      {
-        parse_mode: 'Markdown',
-        ...getCategoryKeyboard('all')
-      }
-    );
-    return;
-  }
-  
-  // زر الرجوع للمصادر
-  if (text?.includes('المصادر') || text?.includes('🔙')) {
+  // زر الرجوع للأقسام
+  if (text?.includes('الأقسام') || text?.includes('🔙')) {
     delete userSourceSelection[chatId];
-    bot.sendMessage(chatId, '🔙 اختر المصدر:', sourceKeyboard);
+    bot.sendMessage(chatId, '🔙 اختر القسم:', sourceKeyboard);
     return;
   }
   
@@ -424,10 +317,10 @@ bot.on('message', async (msg) => {
     return;
   }
   
-  // التحقق من اختيار المصدر أولاً
+  // التحقق من اختيار القسم أولاً
   const selectedSource = userSourceSelection[chatId];
   if (!selectedSource) {
-    bot.sendMessage(chatId, '⚠️ اختر المصدر أولاً من الأزرار أدناه:', sourceKeyboard);
+    bot.sendMessage(chatId, '⚠️ اختر القسم أولاً من الأزرار أدناه:', sourceKeyboard);
     return;
   }
   
@@ -456,44 +349,38 @@ bot.on('message', async (msg) => {
   const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري البحث...');
   
   try {
-    // جلب الصورة من المصدر المحدد
-    const image = await getImageFromSource(categoryKey, selectedSource);
+    // جلب الصورة
+    const image = await getRandomImage(categoryKey);
     
-    // تجهيز النص
-    const sourceName = SOURCES[selectedSource].name;
-    const caption = image.isUnsplash 
-      ? `
-🎨 *${image.categoryEmoji} ${image.categoryName}*
+    // التحقق من نوع الصورة (Unsplash أو محلية)
+    if (image.isUnsplash) {
+      // إرسال صورة من Unsplash
+      const caption = `
+${image.categoryEmoji} *${image.categoryName}*
 
-📝 ${image.description}
-
-📦 المصدر: *${sourceName}*
-📸 المصور: ${image.author}
-
-💡 *${getRandomTip()}*
-      `.trim()
-      : `
-🎨 *${image.categoryEmoji} ${image.categoryName}*
-
-📝 ${image.description}
-
-📦 المصدر: *${sourceName}*
-🗂️ من: ${image.source}
+📝 ${image.categoryDescription}
 
 💡 *${getRandomTip()}*
       `.trim();
-    
-    // إرسال الصورة
-    if (image.isUnsplash) {
-      // إرسال صورة من Unsplash عبر الرابط
+      
       await bot.sendPhoto(chatId, image.url, {
         caption: caption,
         parse_mode: 'Markdown',
         ...getCategoryKeyboard(selectedSource)
       });
+      
     } else {
       // إرسال صورة محلية
       const photoBuffer = fs.readFileSync(image.path);
+      
+      const caption = `
+${image.categoryEmoji} *${image.categoryName}*
+
+📝 ${image.description}
+
+💡 *${getRandomTip()}*
+      `.trim();
+      
       await bot.sendPhoto(chatId, photoBuffer, {
         caption: caption,
         parse_mode: 'Markdown',
@@ -504,7 +391,7 @@ bot.on('message', async (msg) => {
     // حذف رسالة التحميل
     await bot.deleteMessage(chatId, loadingMsg.message_id);
     
-    console.log(`✅ ${image.categoryName} [${sourceName}] → ${msg.from.first_name}`);
+    console.log(`✅ ${image.categoryName} [${selectedSource}] → ${msg.from.first_name}`);
     
   } catch (error) {
     console.error('❌ خطأ:', error.message);
