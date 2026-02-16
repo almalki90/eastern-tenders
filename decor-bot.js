@@ -39,9 +39,15 @@ const SOURCES = {
     emoji: '🏠',
     categories: ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل']
   },
+  huggingface: {
+    name: 'HuggingFace Collection',
+    description: '18,571 صورة - غرف كاملة متنوعة',
+    emoji: '🤗',
+    categories: ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل', 'كراسي', 'قطع_ديكور']
+  },
   all: {
     name: 'جميع المصادر',
-    description: '7,556 صورة - كل المصادر مدمجة',
+    description: '26,127 صورة - كل المصادر مدمجة',
     emoji: '🌐',
     categories: Object.keys(CATEGORIES)
   }
@@ -75,6 +81,7 @@ const sourceKeyboard = {
     keyboard: [
       ['🇸🇪 IKEA Original'],
       ['🏠 IKEA Extended'],
+      ['🤗 HuggingFace Collection'],
       ['🌐 جميع المصادر'],
       ['📊 الإحصائيات']
     ],
@@ -196,6 +203,10 @@ bot.onText(/\/sources/, (msg) => {
 🏠 *IKEA Extended*  
 • ${SOURCES.ikea2.description}
 • التصنيفات: غرف نوم، حمامات، مطابخ، غرف معيشة، طاولات، مداخل
+
+🤗 *HuggingFace Collection*
+• ${SOURCES.huggingface.description}
+• التصنيفات: غرف نوم، حمامات، مطابخ، غرف معيشة، طاولات، مداخل، كراسي، قطع ديكور
 
 🌐 *جميع المصادر*
 • ${SOURCES.all.description}
@@ -340,6 +351,19 @@ bot.on('message', async (msg) => {
       {
         parse_mode: 'Markdown',
         ...getCategoryKeyboard('ikea2')
+      }
+    );
+    return;
+  }
+  
+  if (text?.includes('HuggingFace') || text?.includes('🤗')) {
+    userSourceSelection[chatId] = 'huggingface';
+    
+    bot.sendMessage(chatId,
+      `✅ تم اختيار: *HuggingFace Collection*\n\n${SOURCES.huggingface.description}\n\nاختر التصنيف:`,
+      {
+        parse_mode: 'Markdown',
+        ...getCategoryKeyboard('huggingface')
       }
     );
     return;
