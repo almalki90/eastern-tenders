@@ -1,3 +1,4 @@
+import https from 'https';
 import fs from 'fs';
 import path from 'path';
 
@@ -30,33 +31,114 @@ function saveSentTenders(sentData) {
   }
 }
 
-// إرسال رسالة للتليجرام باستخدام fetch
-async function sendMessage(text, chatId = CHAT_ID) {
-  const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
+// إرسال رسالة للتليجرام
+async function sendTelegramMessage(text, chatId = CHAT_ID) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
       chat_id: parseInt(chatId),
-      text: text
-    })
-  });
+      text: text,
+      parse_mode: 'HTML'
+    });
 
-  const data = await response.json();
-  
-  if (!data.ok) {
-    throw new Error(`Telegram API Error: ${data.description}`);
-  }
-  
-  return data;
+    const options = {
+      hostname: 'api.telegram.org',
+      port: 443,
+      path: `/bot${BOT_TOKEN}/sendMessage`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          resolve(JSON.parse(body));
+        } else {
+          reject(new Error(`HTTP ${res.statusCode}: ${body}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
 }
 
-// النوم لمدة معينة
+// تنسيق التاريخ
+function formatDate(dateStr) {
+  if (!dateStr) return 'غير محدد';
+  
+  try {
+    const date = new Date(dateStr);
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    return date.toLocaleDateString('ar-SA', options);
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+// تنسيق التاريخ والوقت
+function formatDateTime(date) {
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  };
+  return date.toLocaleString('ar-SA', options);
+}
+
+// تنظيف HTML
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// النوم
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// تنسيق رسالة المناقصة
+function formatTenderMessage(tender, index, total) {
+  const title = escapeHtml(tender.title);
+  const region = escapeHtml(tender.region || 'غير محدد');
+  const entity = escapeHtml(tender.entity || 'غير محدد');
+  const deadline = formatDate(tender.deadline);
+  const description = escapeHtml(tender.description?.substring(0, 200) || 'لا يوجد وصف');
+  const source = escapeHtml(tender.source || 'غير محدد');
+  const link = tender.link || 'https://almalki90.github.io/eastern-tenders';
+  
+  return `🔢 <b>مناقصة ${index} من ${total}</b>
+━━━━━━━━━━━━━━━━━
+
+🏛️ <b>${title}</b>
+
+📍 <b>المنطقة:</b> ${region}
+
+🏢 <b>الجهة:</b> ${entity}
+
+📅 <b>آخر موعد:</b> ${deadline}
+
+📝 <b>الوصف:</b>
+${description}${tender.description?.length > 200 ? '...' : ''}
+
+📡 <b>المصدر:</b> ${source}
+
+🔗 <a href="${link}">عرض التفاصيل الكاملة</a>
+
+━━━━━━━━━━━━━━━━━
+⏰ <i>تم التحديث: ${formatDateTime(new Date())}</i>`;
 }
 
 // إرسال المناقصات الجديدة
@@ -83,36 +165,38 @@ async function sendNewTenders() {
     const newTenders = tenders.filter(t => !sentIds.has(t.id));
     console.log(`✨ عدد المناقصات الجديدة: ${newTenders.length}\n`);
 
+    let chatId = CHAT_ID;
+    if (!chatId) {
+      throw new Error('TELEGRAM_CHAT_ID غير محدد!');
+    }
+
     if (newTenders.length === 0) {
       console.log('✅ لا توجد مناقصات جديدة للإرسال');
       
-      // إرسال رسالة تأكيد
-      const confirmMessage = `✅ تحديث نظام المناقصات
+      const confirmMessage = `✅ <b>تحديث نظام المناقصات</b>
 
-⏰ الوقت: ${new Date().toISOString().slice(0, 16).replace('T', ' ')}
+⏰ الوقت: ${formatDateTime(new Date())}
 📊 إجمالي المناقصات: ${tenders.length}
 ✨ مناقصات جديدة: 0
 
 💡 لا توجد مناقصات جديدة في هذا التحديث.`;
 
-      await sendMessage(confirmMessage, CHAT_ID);
+      await sendTelegramMessage(confirmMessage, chatId);
       console.log('✅ تم إرسال رسالة التأكيد');
-      
       return;
     }
 
     // إرسال رسالة البداية
-    const headerMessage = `🔔 تحديث المناقصات الجديدة
+    const headerMessage = `🔔 <b>تحديث المناقصات الجديدة</b>
 
-⏰ الوقت: ${new Date().toISOString().slice(0, 16).replace('T', ' ')}
+⏰ الوقت: ${formatDateTime(new Date())}
 📊 إجمالي المناقصات: ${tenders.length}
 ✨ مناقصات جديدة: ${newTenders.length}
 
 ━━━━━━━━━━━━━━━━━`;
 
-    await sendMessage(headerMessage, CHAT_ID);
+    await sendTelegramMessage(headerMessage, chatId);
     console.log('✅ تم إرسال رسالة البداية\n');
-
     await sleep(1000);
 
     // إرسال كل مناقصة جديدة
@@ -125,28 +209,8 @@ async function sendNewTenders() {
       try {
         console.log(`📤 إرسال مناقصة ${i + 1}/${newTenders.length}: ${tender.title.substring(0, 50)}...`);
         
-        const message = `🔢 مناقصة ${i + 1} من ${newTenders.length}
-━━━━━━━━━━━━━━━━━
-
-🏛️ ${tender.title}
-
-📍 المنطقة: ${tender.region || 'غير محدد'}
-
-🏢 الجهة: ${tender.entity || 'غير محدد'}
-
-📅 آخر موعد: ${tender.deadline || 'غير محدد'}
-
-📝 الوصف:
-${(tender.description || 'لا يوجد وصف').substring(0, 200)}${tender.description?.length > 200 ? '...' : ''}
-
-📡 المصدر: ${tender.source || 'غير محدد'}
-
-🔗 ${tender.link || 'https://almalki90.github.io/eastern-tenders'}
-
-━━━━━━━━━━━━━━━━━
-⏰ ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;
-
-        await sendMessage(message, CHAT_ID);
+        const message = formatTenderMessage(tender, i + 1, newTenders.length);
+        await sendTelegramMessage(message, chatId);
         
         // إضافة للمرسلة
         sentIds.add(tender.id);
@@ -154,7 +218,7 @@ ${(tender.description || 'لا يوجد وصف').substring(0, 200)}${tender.desc
         
         console.log(`✅ تم الإرسال بنجاح\n`);
         
-        // انتظار قصير لتجنب Rate Limiting
+        // انتظار لتجنب Rate Limiting
         await sleep(1200);
         
       } catch (error) {
@@ -173,16 +237,20 @@ ${(tender.description || 'لا يوجد وصف').substring(0, 200)}${tender.desc
 
     // إرسال رسالة النهاية
     const footerMessage = `━━━━━━━━━━━━━━━━━
-✅ اكتمل الإرسال
+✅ <b>اكتمل الإرسال</b>
 
 📊 نجح: ${successCount}
 ❌ فشل: ${failCount}
 📈 إجمالي المرسل: ${sentIds.size}
 
-🔗 https://almalki90.github.io/eastern-tenders
-📡 https://almalki90.github.io/eastern-tenders/feed.xml`;
+🔗 عرض جميع المناقصات:
+https://almalki90.github.io/eastern-tenders
 
-    await sendMessage(footerMessage, CHAT_ID);
+📡 الاشتراك في RSS:
+https://almalki90.github.io/eastern-tenders/feed.xml`;
+
+    await sendTelegramMessage(footerMessage, chatId);
+    
     console.log('\n✨ اكتملت العملية بنجاح!');
     console.log(`📊 الإحصائيات النهائية:`);
     console.log(`   ✅ نجح: ${successCount}`);
@@ -196,12 +264,16 @@ ${(tender.description || 'لا يوجد وصف').substring(0, 200)}${tender.desc
 }
 
 // تشغيل السكريبت
-sendNewTenders()
-  .then(() => {
-    console.log('\n🎉 تمت العملية بنجاح!');
-    process.exit(0);
-  })
-  .catch(error => {
-    console.error('\n💥 فشلت العملية:', error);
-    process.exit(1);
-  });
+if (import.meta.url === `file://${process.argv[1]}`) {
+  sendNewTenders()
+    .then(() => {
+      console.log('\n🎉 تمت العملية بنجاح!');
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('\n💥 فشلت العملية:', error);
+      process.exit(1);
+    });
+}
+
+export { sendNewTenders, sendTelegramMessage };
