@@ -381,7 +381,7 @@ ${image.categoryEmoji} *${image.categoryName}*
         });
         
       } else {
-        // إرسال صورة محلية
+        // إرسال صورة محلية (أثاث)
         const photoBuffer = fs.readFileSync(image.path);
         
         const caption = i === 0 ? `
@@ -392,11 +392,62 @@ ${image.categoryEmoji} *${image.categoryName}*
 💡 *${getRandomTip()}*
         `.trim() : `💡 *${getRandomTip()}*`;
         
-        await bot.sendPhoto(chatId, photoBuffer, {
-          caption: caption,
-          parse_mode: 'Markdown',
-          ...(i === images.length - 1 ? getCategoryKeyboard(selectedSource) : {})
-        });
+        // إعداد الأزرار حسب نوع القسم
+        let replyMarkup = {};
+        
+        if (selectedSource === 'furniture') {
+          // أزرار البحث عن المنتج (فقط للأثاث)
+          replyMarkup = {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { 
+                    text: '🔍 ابحث عن هذا المنتج', 
+                    url: `https://www.google.com/search?q=${encodeURIComponent(image.categoryName + ' furniture')}&tbm=isch`
+                  }
+                ],
+                [
+                  { 
+                    text: '🛒 Amazon', 
+                    url: `https://www.amazon.com/s?k=${encodeURIComponent(image.categoryName + ' furniture')}`
+                  },
+                  { 
+                    text: '🛍️ IKEA', 
+                    url: `https://www.ikea.com/sa/en/search/?q=${encodeURIComponent(image.categoryName)}`
+                  }
+                ]
+              ]
+            }
+          };
+        }
+        
+        // دمج reply_markup مع keyboard إذا كانت آخر صورة
+        if (i === images.length - 1) {
+          if (selectedSource === 'furniture') {
+            // للأثاث: أزرار بحث + keyboard
+            await bot.sendPhoto(chatId, photoBuffer, {
+              caption: caption,
+              parse_mode: 'Markdown',
+              ...replyMarkup
+            });
+            // إرسال keyboard بشكل منفصل
+            await bot.sendMessage(chatId, '📱 اختر فئة أخرى:', getCategoryKeyboard(selectedSource));
+          } else {
+            // للديكورات: keyboard فقط
+            await bot.sendPhoto(chatId, photoBuffer, {
+              caption: caption,
+              parse_mode: 'Markdown',
+              ...getCategoryKeyboard(selectedSource)
+            });
+          }
+        } else {
+          // ليست آخر صورة
+          await bot.sendPhoto(chatId, photoBuffer, {
+            caption: caption,
+            parse_mode: 'Markdown',
+            ...replyMarkup
+          });
+        }
       }
       
       // تأخير صغير بين الصور
