@@ -45,9 +45,15 @@ const SOURCES = {
     emoji: '🤗',
     categories: ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل', 'كراسي', 'قطع_ديكور']
   },
+  unsplash: {
+    name: 'Unsplash Decor',
+    description: 'ملايين الصور - ديكور حقيقي من Unsplash',
+    emoji: '📸',
+    categories: ['شموع', 'إضاءة', 'فازات', 'مرايا', 'لوحات_فنية', 'ديكورات_صغيرة']
+  },
   all: {
     name: 'جميع المصادر',
-    description: '26,127 صورة - كل المصادر مدمجة',
+    description: '26,127+ صورة - كل المصادر مدمجة',
     emoji: '🌐',
     categories: Object.keys(CATEGORIES)
   }
@@ -82,6 +88,7 @@ const sourceKeyboard = {
       ['🇸🇪 IKEA Original'],
       ['🏠 IKEA Extended'],
       ['🤗 HuggingFace Collection'],
+      ['📸 Unsplash Decor'],
       ['🌐 جميع المصادر'],
       ['📊 الإحصائيات']
     ],
@@ -208,6 +215,10 @@ bot.onText(/\/sources/, (msg) => {
 • ${SOURCES.huggingface.description}
 • التصنيفات: غرف نوم، حمامات، مطابخ، غرف معيشة، طاولات، مداخل، كراسي، قطع ديكور
 
+📸 *Unsplash Decor* (جديد!)
+• ${SOURCES.unsplash.description}
+• التصنيفات: شموع، إضاءة، فازات، مرايا، لوحات فنية، ديكورات صغيرة
+
 🌐 *جميع المصادر*
 • ${SOURCES.all.description}
 • جميع التصنيفات متاحة
@@ -289,10 +300,15 @@ function sendDetailedStats(chatId) {
 /**
  * جلب الصور من مصدر محدد
  */
-function getImageFromSource(categoryKey, sourceKey) {
+async function getImageFromSource(categoryKey, sourceKey) {
+  // إذا كان المصدر "unsplash" استخدم API مباشرة
+  if (sourceKey === 'unsplash') {
+    return await getRandomImage(categoryKey);
+  }
+  
   // إذا كان المصدر "all" استخدم الطريقة العادية
   if (sourceKey === 'all') {
-    return getRandomImage(categoryKey);
+    return await getRandomImage(categoryKey);
   }
   
   // جلب صورة من مصدر محدد
@@ -301,14 +317,14 @@ function getImageFromSource(categoryKey, sourceKey) {
     throw new Error(`هذا التصنيف غير متوفر في المصدر المختار`);
   }
   
-  const image = getRandomImage(categoryKey);
+  const image = await getRandomImage(categoryKey);
   
   // تأكد أن الصورة من المصدر المطلوب
   let attempts = 0;
   const maxAttempts = 50;
   
   while (image.sourceKey !== sourceKey && attempts < maxAttempts) {
-    const newImage = getRandomImage(categoryKey);
+    const newImage = await getRandomImage(categoryKey);
     if (newImage.sourceKey === sourceKey) {
       return newImage;
     }
@@ -364,6 +380,19 @@ bot.on('message', async (msg) => {
       {
         parse_mode: 'Markdown',
         ...getCategoryKeyboard('huggingface')
+      }
+    );
+    return;
+  }
+  
+  if (text?.includes('Unsplash') || text?.includes('📸')) {
+    userSourceSelection[chatId] = 'unsplash';
+    
+    bot.sendMessage(chatId,
+      `✅ تم اختيار: *Unsplash Decor*\n\n${SOURCES.unsplash.description}\n\nاختر التصنيف:`,
+      {
+        parse_mode: 'Markdown',
+        ...getCategoryKeyboard('unsplash')
       }
     );
     return;
@@ -428,14 +457,22 @@ bot.on('message', async (msg) => {
   
   try {
     // جلب الصورة من المصدر المحدد
-    const image = getImageFromSource(categoryKey, selectedSource);
-    
-    // قراءة الصورة
-    const photoBuffer = fs.readFileSync(image.path);
+    const image = await getImageFromSource(categoryKey, selectedSource);
     
     // تجهيز النص
     const sourceName = SOURCES[selectedSource].name;
-    const caption = `
+    const caption = image.isUnsplash 
+      ? `
+🎨 *${image.categoryEmoji} ${image.categoryName}*
+
+📝 ${image.description}
+
+📦 المصدر: *${sourceName}*
+📸 المصور: ${image.author}
+
+💡 *${getRandomTip()}*
+      `.trim()
+      : `
 🎨 *${image.categoryEmoji} ${image.categoryName}*
 
 📝 ${image.description}
@@ -444,14 +481,25 @@ bot.on('message', async (msg) => {
 🗂️ من: ${image.source}
 
 💡 *${getRandomTip()}*
-    `.trim();
+      `.trim();
     
     // إرسال الصورة
-    await bot.sendPhoto(chatId, photoBuffer, {
-      caption: caption,
-      parse_mode: 'Markdown',
-      ...getCategoryKeyboard(selectedSource)
-    });
+    if (image.isUnsplash) {
+      // إرسال صورة من Unsplash عبر الرابط
+      await bot.sendPhoto(chatId, image.url, {
+        caption: caption,
+        parse_mode: 'Markdown',
+        ...getCategoryKeyboard(selectedSource)
+      });
+    } else {
+      // إرسال صورة محلية
+      const photoBuffer = fs.readFileSync(image.path);
+      await bot.sendPhoto(chatId, photoBuffer, {
+        caption: caption,
+        parse_mode: 'Markdown',
+        ...getCategoryKeyboard(selectedSource)
+      });
+    }
     
     // حذف رسالة التحميل
     await bot.deleteMessage(chatId, loadingMsg.message_id);

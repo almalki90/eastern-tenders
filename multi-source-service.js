@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getRandomUnsplashImage, UNSPLASH_DECOR_CATEGORIES } from './unsplash-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -134,6 +135,55 @@ export const CATEGORIES = {
       ikea2: [],
       huggingface: ['.']
     }
+  },
+  // فئات الديكور من Unsplash API
+  'شموع': {
+    emoji: '🕯️',
+    name: 'شموع',
+    description: 'شموع ديكورية معطرة',
+    sources: {
+      unsplash: true // يستخدم Unsplash API
+    }
+  },
+  'إضاءة': {
+    emoji: '💡',
+    name: 'إضاءة ديكورية',
+    description: 'مصابيح وإضاءة منزلية',
+    sources: {
+      unsplash: true
+    }
+  },
+  'فازات': {
+    emoji: '🏺',
+    name: 'فازات وأواني',
+    description: 'فازات زهور وأواني ديكورية',
+    sources: {
+      unsplash: true
+    }
+  },
+  'مرايا': {
+    emoji: '🪞',
+    name: 'مرايا ديكورية',
+    description: 'مرايا حائط وديكور',
+    sources: {
+      unsplash: true
+    }
+  },
+  'لوحات_فنية': {
+    emoji: '🖼️',
+    name: 'لوحات فنية',
+    description: 'لوحات جدارية وفن تشكيلي',
+    sources: {
+      unsplash: true
+    }
+  },
+  'ديكورات_صغيرة': {
+    emoji: '🎨',
+    name: 'ديكورات صغيرة',
+    description: 'إكسسوارات ديكور صغيرة',
+    sources: {
+      unsplash: true
+    }
   }
 };
 
@@ -209,7 +259,21 @@ function getAllImagesForCategory(categoryKey) {
 /**
  * الحصول على صورة عشوائية من تصنيف معين
  */
-export function getRandomImage(categoryKey) {
+export async function getRandomImage(categoryKey) {
+  const category = CATEGORIES[categoryKey];
+  
+  // التحقق من وجود التصنيف في Unsplash API
+  if (category.sources.unsplash === true) {
+    // جلب من Unsplash API
+    const unsplashImage = await getRandomUnsplashImage(categoryKey);
+    return {
+      ...unsplashImage,
+      isUnsplash: true, // علامة خاصة
+      category: categoryKey
+    };
+  }
+  
+  // جلب من الملفات المحلية (الطريقة القديمة)
   const images = getAllImagesForCategory(categoryKey);
   
   if (images.length === 0) {
@@ -218,7 +282,6 @@ export function getRandomImage(categoryKey) {
 
   const randomIndex = Math.floor(Math.random() * images.length);
   const selectedImage = images[randomIndex];
-  const category = CATEGORIES[categoryKey];
   
   return {
     path: selectedImage.path,
@@ -229,17 +292,18 @@ export function getRandomImage(categoryKey) {
     categoryName: category.name,
     categoryEmoji: category.emoji,
     description: category.description,
-    totalInCategory: images.length
+    totalInCategory: images.length,
+    isUnsplash: false
   };
 }
 
 /**
  * الحصول على صورة عشوائية من أي تصنيف
  */
-export function getRandomImageFromAll() {
+export async function getRandomImageFromAll() {
   const categories = Object.keys(CATEGORIES);
   const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-  return getRandomImage(randomCategory);
+  return await getRandomImage(randomCategory);
 }
 
 /**
@@ -325,11 +389,15 @@ export async function testMultiSourceSystem() {
   }
   
   console.log('\n🎲 اختبار جلب صورة عشوائية...');
-  const image = getRandomImageFromAll();
+  const image = await getRandomImageFromAll();
   console.log(`✅ تم جلب صورة من: ${image.categoryName}`);
   console.log(`📦 المصدر: ${image.source}`);
-  console.log(`📄 اسم الملف: ${image.fileName}`);
-  console.log(`📊 إجمالي الصور في هذا التصنيف: ${image.totalInCategory}`);
+  if (image.isUnsplash) {
+    console.log(`🔗 رابط Unsplash: ${image.url}`);
+  } else {
+    console.log(`📄 اسم الملف: ${image.fileName}`);
+    console.log(`📊 إجمالي الصور في هذا التصنيف: ${image.totalInCategory}`);
+  }
   
   console.log('\n✅ الاختبار نجح!');
 }
