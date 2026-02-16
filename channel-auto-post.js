@@ -22,11 +22,23 @@ const FURNITURE_CATEGORIES = ['غرف_نوم', 'حمامات', 'مطابخ', 'غ
 const DECOR_CATEGORIES = ['شموع', 'إضاءة', 'فازات', 'مرايا', 'لوحات_فنية', 'ديكورات_صغيرة'];
 
 /**
- * اختيار فئة عشوائية
+ * متغير لتتبع النوع الحالي (أثاث أو ديكور)
+ * true = ديكور, false = أثاث
+ */
+let isDecorTurn = false;
+
+/**
+ * اختيار فئة بالتناوب (ديكور → أثاث → ديكور → أثاث)
  */
 function getRandomCategory() {
-  const allCategories = [...FURNITURE_CATEGORIES, ...DECOR_CATEGORIES];
-  return allCategories[Math.floor(Math.random() * allCategories.length)];
+  // التناوب بين الأثاث والديكور
+  const categories = isDecorTurn ? DECOR_CATEGORIES : FURNITURE_CATEGORIES;
+  const categoryKey = categories[Math.floor(Math.random() * categories.length)];
+  
+  // تبديل النوع للمرة القادمة
+  isDecorTurn = !isDecorTurn;
+  
+  return categoryKey;
 }
 
 /**
@@ -34,12 +46,15 @@ function getRandomCategory() {
  */
 async function sendImagesToChannel() {
   try {
-    console.log(`📤 بدء إرسال 5 صور إلى القناة...`);
-    
-    // اختيار فئة عشوائية
+    // اختيار فئة بالتناوب
     const categoryKey = getRandomCategory();
     const category = CATEGORIES[categoryKey];
     
+    // تحديد نوع القسم
+    const sectionType = DECOR_CATEGORIES.includes(categoryKey) ? '🎨 ديكورات' : '🪑 أثاث';
+    
+    console.log(`📤 بدء إرسال 5 صور إلى القناة...`);
+    console.log(`📂 القسم: ${sectionType}`);
     console.log(`📂 الفئة المختارة: ${category.emoji} ${category.name}`);
     
     // جلب 5 صور
