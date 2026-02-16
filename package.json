@@ -8,6 +8,7 @@
     "scrape": "node scraper/index.js",
     "mock": "node scripts/generate-mock-data.js",
     "generate-rss": "node scripts/generate-rss.js",
+    "telegram": "node scripts/send-telegram.js",
     "build": "npm run mock && npm run generate-rss && cp -r data public/",
     "build:real": "npm run scrape && npm run generate-rss && cp -r data public/",
     "dev": "python3 -m http.server 8000",

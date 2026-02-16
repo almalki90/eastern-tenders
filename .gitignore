@@ -26,3 +26,6 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# Telegram tracking (will be managed by GitHub Actions)
+data/sent-tenders.json

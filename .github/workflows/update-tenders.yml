@@ -59,6 +59,15 @@ jobs:
             echo "عدد المناقصات: $COUNT"
           fi
       
+      - name: 🤖 Send to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "🤖 إرسال المناقصات للتليجرام..."
+          node scripts/send-telegram.js
+          echo "✅ تم الإرسال بنجاح"
+      
       - name: 💾 Commit Changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
