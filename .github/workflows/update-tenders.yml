@@ -36,8 +36,7 @@ jobs:
       - name: 📦 Install Dependencies
         run: |
           npm install
-          npx playwright install chromium
-          npx playwright install-deps
+          npx playwright install chromium --with-deps
       
       - name: 🕷️ Scrape Tenders Data
         run: |
