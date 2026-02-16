@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getRandomUnsplashImage, UNSPLASH_DECOR_CATEGORIES } from './unsplash-service.js';
+import { getRandomPexelsImage, PEXELS_DECOR_CATEGORIES } from './pexels-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -136,13 +137,14 @@ export const CATEGORIES = {
       huggingface: ['.']
     }
   },
-  // فئات الديكور من Unsplash API
+  // فئات الديكور من Unsplash و Pexels API
   'شموع': {
     emoji: '🕯️',
     name: 'شموع',
     description: 'شموع ديكورية معطرة',
     sources: {
-      unsplash: true // يستخدم Unsplash API
+      unsplash: true, // يستخدم Unsplash API
+      pexels: true    // يستخدم Pexels API
     }
   },
   'إضاءة': {
@@ -150,7 +152,8 @@ export const CATEGORIES = {
     name: 'إضاءة ديكورية',
     description: 'مصابيح وإضاءة منزلية',
     sources: {
-      unsplash: true
+      unsplash: true,
+      pexels: true
     }
   },
   'فازات': {
@@ -158,7 +161,8 @@ export const CATEGORIES = {
     name: 'فازات وأواني',
     description: 'فازات زهور وأواني ديكورية',
     sources: {
-      unsplash: true
+      unsplash: true,
+      pexels: true
     }
   },
   'مرايا': {
@@ -166,7 +170,8 @@ export const CATEGORIES = {
     name: 'مرايا ديكورية',
     description: 'مرايا حائط وديكور',
     sources: {
-      unsplash: true
+      unsplash: true,
+      pexels: true
     }
   },
   'لوحات_فنية': {
@@ -174,7 +179,8 @@ export const CATEGORIES = {
     name: 'لوحات فنية',
     description: 'لوحات جدارية وفن تشكيلي',
     sources: {
-      unsplash: true
+      unsplash: true,
+      pexels: true
     }
   },
   'ديكورات_صغيرة': {
@@ -182,7 +188,8 @@ export const CATEGORIES = {
     name: 'ديكورات صغيرة',
     description: 'إكسسوارات ديكور صغيرة',
     sources: {
-      unsplash: true
+      unsplash: true,
+      pexels: true
     }
   }
 };
@@ -262,18 +269,33 @@ function getAllImagesForCategory(categoryKey) {
 export async function getRandomImage(categoryKey) {
   const category = CATEGORIES[categoryKey];
   
-  // التحقق من وجود التصنيف في Unsplash API
+  // التحقق من وجود التصنيف في APIs (Unsplash أو Pexels)
   if (category.sources.unsplash === true) {
-    // جلب من Unsplash API
-    const unsplashImage = await getRandomUnsplashImage(categoryKey);
-    return {
-      ...unsplashImage,
-      isUnsplash: true, // علامة خاصة
-      category: categoryKey
-    };
+    // اختيار عشوائي بين Unsplash و Pexels (50/50)
+    const useUnsplash = Math.random() < 0.5;
+    
+    if (useUnsplash) {
+      // جلب من Unsplash API
+      const unsplashImage = await getRandomUnsplashImage(categoryKey);
+      return {
+        ...unsplashImage,
+        isUnsplash: true,
+        isPexels: false,
+        category: categoryKey
+      };
+    } else {
+      // جلب من Pexels API
+      const pexelsImage = await getRandomPexelsImage(categoryKey);
+      return {
+        ...pexelsImage,
+        isUnsplash: false,
+        isPexels: true,
+        category: categoryKey
+      };
+    }
   }
   
-  // جلب من الملفات المحلية (الطريقة القديمة)
+  // جلب من الملفات المحلية (الأثاث)
   const images = getAllImagesForCategory(categoryKey);
   
   if (images.length === 0) {
@@ -293,7 +315,8 @@ export async function getRandomImage(categoryKey) {
     categoryEmoji: category.emoji,
     description: category.description,
     totalInCategory: images.length,
-    isUnsplash: false
+    isUnsplash: false,
+    isPexels: false
   };
 }
 

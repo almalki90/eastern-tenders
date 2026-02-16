@@ -53,8 +53,8 @@ async function sendImagesToChannel() {
     for (let i = 0; i < images.length; i++) {
       const image = images[i];
       
-      if (image.isUnsplash) {
-        // صورة من Unsplash (ديكورات)
+      if (image.isUnsplash || image.isPexels) {
+        // صورة من Unsplash أو Pexels (ديكورات)
         const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
 

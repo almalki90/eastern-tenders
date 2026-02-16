@@ -363,9 +363,9 @@ bot.on('message', async (msg) => {
     for (let i = 0; i < images.length; i++) {
       const image = images[i];
       
-      // التحقق من نوع الصورة (Unsplash أو محلية)
-      if (image.isUnsplash) {
-        // إرسال صورة من Unsplash (ديكورات)
+      // التحقق من نوع الصورة (Unsplash / Pexels / محلية)
+      if (image.isUnsplash || image.isPexels) {
+        // إرسال صورة من Unsplash أو Pexels (ديكورات)
         const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
 

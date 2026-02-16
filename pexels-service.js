@@ -1,110 +1,157 @@
 /**
- * Pexels API Service - خدمة صور الديكور
- * جلب صور احترافية للديكور المنزلي من Pexels
+ * خدمة Pexels API لجلب صور الديكور
+ * مصدر إضافي للديكورات بجانب Unsplash
  */
 
-import axios from 'axios';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
-const PEXELS_BASE_URL = 'https://api.pexels.com/v1';
+const PEXELS_API_BASE = 'https://api.pexels.com/v1';
 
-// التصنيفات المتاحة
-export const CATEGORIES = {
-  'غرف_نوم': ['bedroom interior', 'bedroom design', 'modern bedroom'],
-  'غرف_معيشة': ['living room', 'modern living room', 'cozy living room'],
-  'مطابخ': ['kitchen interior', 'modern kitchen', 'kitchen design'],
-  'حمامات': ['bathroom interior', 'modern bathroom', 'luxury bathroom'],
-  'مداخل': ['entrance design', 'hallway interior', 'foyer design'],
-  'حدائق': ['garden design', 'outdoor patio', 'backyard design'],
-  'إضاءة': ['interior lighting', 'modern lighting', 'home lighting'],
-  'ألوان': ['colorful interior', 'home colors', 'interior paint'],
-  'ديكور_عام': ['home decor', 'interior design', 'home interior']
+/**
+ * فئات الديكور من Pexels (نفس فئات Unsplash)
+ */
+export const PEXELS_DECOR_CATEGORIES = {
+  'شموع': {
+    emoji: '🕯️',
+    name: 'شموع',
+    description: 'شموع ديكورية معطرة',
+    query: 'candles home decor'
+  },
+  'إضاءة': {
+    emoji: '💡',
+    name: 'إضاءة ديكورية',
+    description: 'مصابيح وإضاءة منزلية',
+    query: 'decorative lighting lamps'
+  },
+  'فازات': {
+    emoji: '🏺',
+    name: 'فازات وأواني',
+    description: 'فازات زهور وأواني ديكورية',
+    query: 'vases home decor'
+  },
+  'مرايا': {
+    emoji: '🪞',
+    name: 'مرايا ديكورية',
+    description: 'مرايا حائط وديكور',
+    query: 'decorative mirrors'
+  },
+  'لوحات_فنية': {
+    emoji: '🖼️',
+    name: 'لوحات فنية',
+    description: 'لوحات جدارية وفن تشكيلي',
+    query: 'wall art paintings'
+  },
+  'ديكورات_صغيرة': {
+    emoji: '🎨',
+    name: 'ديكورات صغيرة',
+    description: 'إكسسوارات ديكور صغيرة',
+    query: 'home accessories decor'
+  }
 };
 
 /**
- * جلب صورة عشوائية من تصنيف محدد
+ * جلب صورة عشوائية من Pexels
  */
-export async function getRandomDecorImage(category = 'ديكور_عام') {
+export async function getRandomPexelsImage(categoryKey) {
+  if (!PEXELS_API_KEY) {
+    throw new Error('مفتاح Pexels API غير متوفر');
+  }
+
+  const category = PEXELS_DECOR_CATEGORIES[categoryKey];
+  if (!category) {
+    throw new Error(`تصنيف غير موجود: ${categoryKey}`);
+  }
+
   try {
-    const queries = CATEGORIES[category] || CATEGORIES['ديكور_عام'];
-    const randomQuery = queries[Math.floor(Math.random() * queries.length)];
-    
-    const response = await axios.get(`${PEXELS_BASE_URL}/search`, {
-      params: {
-        query: randomQuery,
-        per_page: 20,
-        page: Math.floor(Math.random() * 5) + 1 // صفحات عشوائية
-      },
+    // استخدام Search endpoint مع صفحة عشوائية
+    const randomPage = Math.floor(Math.random() * 10) + 1; // صفحات 1-10
+    const url = new URL(`${PEXELS_API_BASE}/search`);
+    url.searchParams.append('query', category.query);
+    url.searchParams.append('per_page', '15'); // 15 صورة لكل صفحة
+    url.searchParams.append('page', randomPage);
+    url.searchParams.append('orientation', 'landscape');
+
+    const response = await fetch(url, {
       headers: {
         'Authorization': PEXELS_API_KEY
       }
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Pexels API Error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
     
-    if (!response.data.photos || response.data.photos.length === 0) {
+    if (!data.photos || data.photos.length === 0) {
       throw new Error('لم يتم العثور على صور');
     }
-    
-    // اختيار صورة عشوائية
-    const photos = response.data.photos;
-    const randomPhoto = photos[Math.floor(Math.random() * photos.length)];
-    
+
+    // اختيار صورة عشوائية من النتائج
+    const randomIndex = Math.floor(Math.random() * data.photos.length);
+    const photo = data.photos[randomIndex];
+
     return {
-      url: randomPhoto.src.large2x, // جودة عالية
-      photographer: randomPhoto.photographer,
-      photographerUrl: randomPhoto.photographer_url,
-      description: randomPhoto.alt || randomQuery,
-      category: category,
-      query: randomQuery
+      url: photo.src.large, // جودة كبيرة
+      downloadUrl: photo.src.original, // جودة أصلية
+      author: photo.photographer,
+      authorUrl: photo.photographer_url,
+      pexelsUrl: photo.url,
+      description: photo.alt || category.name,
+      categoryName: category.name,
+      categoryEmoji: category.emoji,
+      categoryDescription: category.description,
+      source: 'Pexels API',
+      sourceKey: 'pexels'
     };
-    
+
   } catch (error) {
-    console.error('❌ خطأ في جلب الصورة:', error.message);
+    console.error('❌ خطأ في Pexels API:', error.message);
     throw error;
   }
 }
 
 /**
- * جلب صور متعددة
+ * جلب صورة عشوائية من أي فئة ديكور
  */
-export async function getMultipleDecorImages(count = 5) {
-  const categories = Object.keys(CATEGORIES);
-  const images = [];
-  
-  for (let i = 0; i < count; i++) {
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    try {
-      const image = await getRandomDecorImage(randomCategory);
-      images.push(image);
-      // تأخير بسيط لتجنب Rate Limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error) {
-      console.error(`فشل جلب صورة ${i + 1}`);
-    }
-  }
-  
-  return images;
+export async function getRandomPexelsDecorImage() {
+  const categories = Object.keys(PEXELS_DECOR_CATEGORIES);
+  const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+  return getRandomPexelsImage(randomCategory);
 }
 
 /**
- * اختبار الـ API
+ * اختبار الخدمة
  */
-export async function testPexelsAPI() {
-  console.log('🔍 اختبار Pexels API...\n');
-  
+export async function testPexelsService() {
+  console.log('🧪 اختبار خدمة Pexels API...\n');
+
   try {
-    const image = await getRandomDecorImage('غرف_نوم');
-    
-    console.log('✅ نجح الاتصال!');
-    console.log('📸 الصورة:', image.url);
-    console.log('👤 المصور:', image.photographer);
-    console.log('📂 التصنيف:', image.category);
-    console.log('🔍 البحث:', image.query);
-    
-    return image;
+    console.log('📦 الفئات المتاحة:');
+    for (const [key, cat] of Object.entries(PEXELS_DECOR_CATEGORIES)) {
+      console.log(`${cat.emoji} ${cat.name}`);
+    }
+
+    console.log('\n🎲 جلب صورة عشوائية من فئة "شموع"...');
+    const image = await getRandomPexelsImage('شموع');
+
+    console.log(`✅ تم جلب الصورة بنجاح!`);
+    console.log(`📸 العنوان: ${image.description}`);
+    console.log(`👤 المصور: ${image.author}`);
+    console.log(`🔗 الرابط: ${image.url}`);
+    console.log(`📦 المصدر: ${image.source}`);
+
+    console.log('\n✅ الاختبار نجح!');
   } catch (error) {
     console.error('❌ فشل الاختبار:', error.message);
-    throw error;
   }
+}
+
+// تشغيل الاختبار إذا تم تنفيذ الملف مباشرة
+if (import.meta.url === `file://${process.argv[1]}`) {
+  testPexelsService();
 }
