@@ -1,7 +1,7 @@
 {
   "name": "decor-ideas-bot",
-  "version": "2.0.0",
-  "description": "🎨 بوت Telegram احترافي لأفكار الديكور المنزلي",
+  "version": "3.0.0",
+  "description": "🎨 بوت Telegram احترافي - أثاث وديكورات (26K+ صور + Unsplash API)",
   "main": "decor-bot.js",
   "type": "module",
   "scripts": {
