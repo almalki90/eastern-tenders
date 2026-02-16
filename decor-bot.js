@@ -346,52 +346,66 @@ bot.on('message', async (msg) => {
   }
   
   // إرسال "جاري التحميل..."
-  const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري البحث...');
+  const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري البحث عن 6 صور...');
   
   try {
-    // جلب الصورة
-    const image = await getRandomImage(categoryKey);
-    
-    // التحقق من نوع الصورة (Unsplash أو محلية)
-    if (image.isUnsplash) {
-      // إرسال صورة من Unsplash
-      const caption = `
-${image.categoryEmoji} *${image.categoryName}*
-
-📝 ${image.categoryDescription}
-
-💡 *${getRandomTip()}*
-      `.trim();
-      
-      await bot.sendPhoto(chatId, image.url, {
-        caption: caption,
-        parse_mode: 'Markdown',
-        ...getCategoryKeyboard(selectedSource)
-      });
-      
-    } else {
-      // إرسال صورة محلية
-      const photoBuffer = fs.readFileSync(image.path);
-      
-      const caption = `
-${image.categoryEmoji} *${image.categoryName}*
-
-📝 ${image.description}
-
-💡 *${getRandomTip()}*
-      `.trim();
-      
-      await bot.sendPhoto(chatId, photoBuffer, {
-        caption: caption,
-        parse_mode: 'Markdown',
-        ...getCategoryKeyboard(selectedSource)
-      });
+    // جلب 6 صور
+    const images = [];
+    for (let i = 0; i < 6; i++) {
+      const image = await getRandomImage(categoryKey);
+      images.push(image);
     }
     
     // حذف رسالة التحميل
     await bot.deleteMessage(chatId, loadingMsg.message_id);
     
-    console.log(`✅ ${image.categoryName} [${selectedSource}] → ${msg.from.first_name}`);
+    // إرسال الصور واحدة تلو الأخرى
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      
+      // التحقق من نوع الصورة (Unsplash أو محلية)
+      if (image.isUnsplash) {
+        // إرسال صورة من Unsplash
+        const caption = i === 0 ? `
+${image.categoryEmoji} *${image.categoryName}*
+
+📝 ${image.categoryDescription}
+
+💡 *${getRandomTip()}*
+        `.trim() : `💡 *${getRandomTip()}*`;
+        
+        await bot.sendPhoto(chatId, image.url, {
+          caption: caption,
+          parse_mode: 'Markdown',
+          ...(i === images.length - 1 ? getCategoryKeyboard(selectedSource) : {})
+        });
+        
+      } else {
+        // إرسال صورة محلية
+        const photoBuffer = fs.readFileSync(image.path);
+        
+        const caption = i === 0 ? `
+${image.categoryEmoji} *${image.categoryName}*
+
+📝 ${image.description}
+
+💡 *${getRandomTip()}*
+        `.trim() : `💡 *${getRandomTip()}*`;
+        
+        await bot.sendPhoto(chatId, photoBuffer, {
+          caption: caption,
+          parse_mode: 'Markdown',
+          ...(i === images.length - 1 ? getCategoryKeyboard(selectedSource) : {})
+        });
+      }
+      
+      // تأخير صغير بين الصور
+      if (i < images.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
+    console.log(`✅ تم إرسال 6 صور من ${images[0].categoryName} [${selectedSource}] → ${msg.from.first_name}`);
     
   } catch (error) {
     console.error('❌ خطأ:', error.message);
