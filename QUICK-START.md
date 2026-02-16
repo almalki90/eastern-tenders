@@ -10,13 +10,9 @@
 
 ## ✅ **خطوة 2: الحصول على Chat ID**
 
-### الطريقة السهلة:
-افتح هذا الرابط في المتصفح:
-```
-https://api.telegram.org/bot8312577403:AAGHSB9L3xx4BxWgbtzjU4VnoMWwvVDcMgo/getUpdates
-```
+**Chat ID الخاص بك:** `8415608677` ✅
 
-ابحث عن `"chat":{"id":` وانسخ الرقم بعدها (مثال: `123456789`)
+تم الحصول عليه تلقائياً من رسالتك للبوت!
 
 ---
 
@@ -31,7 +27,7 @@ https://api.telegram.org/bot8312577403:AAGHSB9L3xx4BxWgbtzjU4VnoMWwvVDcMgo/getUp
 
 ### Secret #2:
 - **Name**: `TELEGRAM_CHAT_ID`
-- **Value**: `YOUR_CHAT_ID` (الرقم من الخطوة 2)
+- **Value**: `8415608677` ✅ (Chat ID الخاص بك)
 
 ---
 

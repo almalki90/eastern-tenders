@@ -1,10 +1,9 @@
-import https from 'https';
 import fs from 'fs';
 import path from 'path';
 
 // معلومات البوت
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8312577403:AAGHSB9L3xx4BxWgbtzjU4VnoMWwvVDcMgo';
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID || ''; // سيتم تحديده لاحقاً
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
 // ملف تتبع المناقصات المرسلة
 const SENT_TENDERS_FILE = path.join(process.cwd(), 'data', 'sent-tenders.json');
@@ -31,155 +30,28 @@ function saveSentTenders(sentData) {
   }
 }
 
-// إرسال رسالة للتليجرام
-async function sendTelegramMessage(message, chatId = CHAT_ID) {
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify({
-      chat_id: chatId,
-      text: message,
-      parse_mode: 'HTML',
-      disable_web_page_preview: false
-    });
-
-    const options = {
-      hostname: 'api.telegram.org',
-      port: 443,
-      path: `/bot${BOT_TOKEN}/sendMessage`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': data.length
-      }
-    };
-
-    const req = https.request(options, (res) => {
-      let body = '';
-      res.on('data', (chunk) => body += chunk);
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          resolve(JSON.parse(body));
-        } else {
-          reject(new Error(`HTTP ${res.statusCode}: ${body}`));
-        }
-      });
-    });
-
-    req.on('error', reject);
-    req.write(data);
-    req.end();
-  });
-}
-
-// الحصول على معرف الدردشة (Chat ID) من البوت
-async function getChatId() {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'api.telegram.org',
-      port: 443,
-      path: `/bot${BOT_TOKEN}/getUpdates`,
-      method: 'GET'
-    };
-
-    https.get(options, (res) => {
-      let body = '';
-      res.on('data', (chunk) => body += chunk);
-      res.on('end', () => {
-        try {
-          const data = JSON.parse(body);
-          if (data.ok && data.result.length > 0) {
-            const chatId = data.result[data.result.length - 1].message?.chat?.id;
-            if (chatId) {
-              resolve(chatId);
-            } else {
-              reject(new Error('لم يتم العثور على Chat ID. أرسل رسالة للبوت أولاً!'));
-            }
-          } else {
-            reject(new Error('لا توجد رسائل. أرسل /start للبوت أولاً!'));
-          }
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
-  });
-}
-
-// تنسيق رسالة المناقصة
-function formatTenderMessage(tender, index, total) {
-  const icons = {
-    title: '🏛️',
-    region: '📍',
-    entity: '🏢',
-    deadline: '📅',
-    description: '📝',
-    link: '🔗',
-    source: '📡',
-    number: '🔢'
-  };
-
-  let message = `
-${icons.number} <b>مناقصة ${index} من ${total}</b>
-━━━━━━━━━━━━━━━━━
-
-${icons.title} <b>${escapeHtml(tender.title)}</b>
-
-${icons.region} <b>المنطقة:</b> ${escapeHtml(tender.region || 'غير محدد')}
-
-${icons.entity} <b>الجهة:</b> ${escapeHtml(tender.entity || 'غير محدد')}
-
-${icons.deadline} <b>آخر موعد:</b> ${formatDate(tender.deadline)}
-
-${icons.description} <b>الوصف:</b>
-${escapeHtml(tender.description?.substring(0, 200) || 'لا يوجد وصف')}${tender.description?.length > 200 ? '...' : ''}
-
-${icons.source} <b>المصدر:</b> ${escapeHtml(tender.source || 'غير محدد')}
-
-${icons.link} <a href="${tender.link || 'https://almalki90.github.io/eastern-tenders'}">عرض التفاصيل الكاملة</a>
-
-━━━━━━━━━━━━━━━━━
-⏰ <i>تم التحديث: ${formatDateTime(new Date())}</i>
-  `.trim();
-
-  return message;
-}
-
-// تنسيق التاريخ
-function formatDate(dateStr) {
-  if (!dateStr) return 'غير محدد';
+// إرسال رسالة للتليجرام باستخدام fetch
+async function sendMessage(text, chatId = CHAT_ID) {
+  const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
   
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
-    });
-  } catch (e) {
-    return dateStr;
-  }
-}
-
-// تنسيق التاريخ والوقت
-function formatDateTime(date) {
-  return date.toLocaleString('ar-SA', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      chat_id: parseInt(chatId),
+      text: text
+    })
   });
-}
 
-// تنظيف HTML
-function escapeHtml(text) {
-  if (!text) return '';
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  const data = await response.json();
+  
+  if (!data.ok) {
+    throw new Error(`Telegram API Error: ${data.description}`);
+  }
+  
+  return data;
 }
 
 // النوم لمدة معينة
@@ -215,53 +87,30 @@ async function sendNewTenders() {
       console.log('✅ لا توجد مناقصات جديدة للإرسال');
       
       // إرسال رسالة تأكيد
-      const confirmMessage = `
-✅ <b>تحديث نظام المناقصات</b>
+      const confirmMessage = `✅ تحديث نظام المناقصات
 
-⏰ الوقت: ${formatDateTime(new Date())}
+⏰ الوقت: ${new Date().toISOString().slice(0, 16).replace('T', ' ')}
 📊 إجمالي المناقصات: ${tenders.length}
 ✨ مناقصات جديدة: 0
 
-💡 لا توجد مناقصات جديدة في هذا التحديث.
-      `.trim();
+💡 لا توجد مناقصات جديدة في هذا التحديث.`;
 
-      try {
-        let chatId = CHAT_ID;
-        if (!chatId) {
-          console.log('🔍 محاولة الحصول على Chat ID...');
-          chatId = await getChatId();
-          console.log(`✅ تم الحصول على Chat ID: ${chatId}`);
-        }
-        
-        await sendTelegramMessage(confirmMessage, chatId);
-        console.log('✅ تم إرسال رسالة التأكيد');
-      } catch (e) {
-        console.log('⚠️  لم يتم إرسال رسالة التأكيد:', e.message);
-      }
+      await sendMessage(confirmMessage, CHAT_ID);
+      console.log('✅ تم إرسال رسالة التأكيد');
       
       return;
     }
 
-    // الحصول على Chat ID
-    let chatId = CHAT_ID;
-    if (!chatId) {
-      console.log('🔍 محاولة الحصول على Chat ID...');
-      chatId = await getChatId();
-      console.log(`✅ تم الحصول على Chat ID: ${chatId}\n`);
-    }
-
     // إرسال رسالة البداية
-    const headerMessage = `
-🔔 <b>تحديث المناقصات الجديدة</b>
+    const headerMessage = `🔔 تحديث المناقصات الجديدة
 
-⏰ الوقت: ${formatDateTime(new Date())}
+⏰ الوقت: ${new Date().toISOString().slice(0, 16).replace('T', ' ')}
 📊 إجمالي المناقصات: ${tenders.length}
 ✨ مناقصات جديدة: ${newTenders.length}
 
-━━━━━━━━━━━━━━━━━
-    `.trim();
+━━━━━━━━━━━━━━━━━`;
 
-    await sendTelegramMessage(headerMessage, chatId);
+    await sendMessage(headerMessage, CHAT_ID);
     console.log('✅ تم إرسال رسالة البداية\n');
 
     await sleep(1000);
@@ -276,8 +125,28 @@ async function sendNewTenders() {
       try {
         console.log(`📤 إرسال مناقصة ${i + 1}/${newTenders.length}: ${tender.title.substring(0, 50)}...`);
         
-        const message = formatTenderMessage(tender, i + 1, newTenders.length);
-        await sendTelegramMessage(message, chatId);
+        const message = `🔢 مناقصة ${i + 1} من ${newTenders.length}
+━━━━━━━━━━━━━━━━━
+
+🏛️ ${tender.title}
+
+📍 المنطقة: ${tender.region || 'غير محدد'}
+
+🏢 الجهة: ${tender.entity || 'غير محدد'}
+
+📅 آخر موعد: ${tender.deadline || 'غير محدد'}
+
+📝 الوصف:
+${(tender.description || 'لا يوجد وصف').substring(0, 200)}${tender.description?.length > 200 ? '...' : ''}
+
+📡 المصدر: ${tender.source || 'غير محدد'}
+
+🔗 ${tender.link || 'https://almalki90.github.io/eastern-tenders'}
+
+━━━━━━━━━━━━━━━━━
+⏰ ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;
+
+        await sendMessage(message, CHAT_ID);
         
         // إضافة للمرسلة
         sentIds.add(tender.id);
@@ -285,14 +154,12 @@ async function sendNewTenders() {
         
         console.log(`✅ تم الإرسال بنجاح\n`);
         
-        // انتظار قصير لتجنب Rate Limiting (30 رسالة/ثانية)
+        // انتظار قصير لتجنب Rate Limiting
         await sleep(1200);
         
       } catch (error) {
         console.error(`❌ فشل إرسال المناقصة: ${error.message}\n`);
         failCount++;
-        
-        // انتظار أطول في حالة الخطأ
         await sleep(3000);
       }
     }
@@ -305,22 +172,17 @@ async function sendNewTenders() {
     });
 
     // إرسال رسالة النهاية
-    const footerMessage = `
-━━━━━━━━━━━━━━━━━
-✅ <b>اكتمل الإرسال</b>
+    const footerMessage = `━━━━━━━━━━━━━━━━━
+✅ اكتمل الإرسال
 
 📊 نجح: ${successCount}
 ❌ فشل: ${failCount}
 📈 إجمالي المرسل: ${sentIds.size}
 
-🔗 عرض جميع المناقصات:
-https://almalki90.github.io/eastern-tenders
+🔗 https://almalki90.github.io/eastern-tenders
+📡 https://almalki90.github.io/eastern-tenders/feed.xml`;
 
-📡 الاشتراك في RSS:
-https://almalki90.github.io/eastern-tenders/feed.xml
-    `.trim();
-
-    await sendTelegramMessage(footerMessage, chatId);
+    await sendMessage(footerMessage, CHAT_ID);
     console.log('\n✨ اكتملت العملية بنجاح!');
     console.log(`📊 الإحصائيات النهائية:`);
     console.log(`   ✅ نجح: ${successCount}`);
@@ -334,16 +196,12 @@ https://almalki90.github.io/eastern-tenders/feed.xml
 }
 
 // تشغيل السكريبت
-if (import.meta.url === `file://${process.argv[1]}`) {
-  sendNewTenders()
-    .then(() => {
-      console.log('\n🎉 تمت العملية بنجاح!');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('\n💥 فشلت العملية:', error);
-      process.exit(1);
-    });
-}
-
-export { sendNewTenders, sendTelegramMessage, getChatId };
+sendNewTenders()
+  .then(() => {
+    console.log('\n🎉 تمت العملية بنجاح!');
+    process.exit(0);
+  })
+  .catch(error => {
+    console.error('\n💥 فشلت العملية:', error);
+    process.exit(1);
+  });
