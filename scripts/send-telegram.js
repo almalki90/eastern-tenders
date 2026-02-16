@@ -141,6 +141,44 @@ ${description}${tender.description?.length > 200 ? '...' : ''}
 ⏰ <i>تم التحديث: ${formatDateTime(new Date())}</i>`;
 }
 
+// تنسيق رسالة الترسية
+function formatAwardMessage(award, index, total) {
+  const title = escapeHtml(award.title);
+  const region = escapeHtml(award.region || 'غير محدد');
+  const entity = escapeHtml(award.entity || 'غير محدد');
+  const winner = escapeHtml(award.winner || 'غير محدد');
+  const amount = award.amount ? `${award.amount.toLocaleString('ar-SA')} ريال` : 'غير محدد';
+  const awardDate = formatDate(award.awardDate);
+  const description = escapeHtml(award.description?.substring(0, 200) || 'لا يوجد وصف');
+  const source = escapeHtml(award.source || 'غير محدد');
+  const link = award.link || 'https://almalki90.github.io/eastern-tenders';
+  
+  return `🎯 <b>ترسية ${index} من ${total}</b>
+━━━━━━━━━━━━━━━━━
+
+🏆 <b>${title}</b>
+
+📍 <b>المنطقة:</b> ${region}
+
+🏢 <b>الجهة المانحة:</b> ${entity}
+
+🎖️ <b>الفائز:</b> ${winner}
+
+💰 <b>قيمة العقد:</b> ${amount}
+
+📅 <b>تاريخ الترسية:</b> ${awardDate}
+
+📝 <b>التفاصيل:</b>
+${description}${award.description?.length > 200 ? '...' : ''}
+
+📡 <b>المصدر:</b> ${source}
+
+🔗 <a href="${link}">عرض التفاصيل الكاملة</a>
+
+━━━━━━━━━━━━━━━━━
+⏰ <i>تم التحديث: ${formatDateTime(new Date())}</i>`;
+}
+
 // إرسال المناقصات الجديدة
 async function sendNewTenders() {
   console.log('🤖 بدء عملية إرسال المناقصات للتليجرام...\n');
@@ -186,12 +224,16 @@ async function sendNewTenders() {
       return;
     }
 
+    // فصل المناقصات والترسيات
+    const newTendersList = newTenders.filter(t => t.type === 'tender');
+    const newAwardsList = newTenders.filter(t => t.type === 'award');
+
     // إرسال رسالة البداية
-    const headerMessage = `🔔 <b>تحديث المناقصات الجديدة</b>
+    const headerMessage = `🔔 <b>تحديث جديد</b>
 
 ⏰ الوقت: ${formatDateTime(new Date())}
-📊 إجمالي المناقصات: ${tenders.length}
-✨ مناقصات جديدة: ${newTenders.length}
+📊 إجمالي البيانات: ${tenders.length}
+✨ جديد: ${newTendersList.length} مناقصة + ${newAwardsList.length} ترسية
 
 ━━━━━━━━━━━━━━━━━`;
 
@@ -199,21 +241,30 @@ async function sendNewTenders() {
     console.log('✅ تم إرسال رسالة البداية\n');
     await sleep(1000);
 
-    // إرسال كل مناقصة جديدة
+    // إرسال كل عنصر جديد
     let successCount = 0;
     let failCount = 0;
 
     for (let i = 0; i < newTenders.length; i++) {
-      const tender = newTenders[i];
+      const item = newTenders[i];
       
       try {
-        console.log(`📤 إرسال مناقصة ${i + 1}/${newTenders.length}: ${tender.title.substring(0, 50)}...`);
+        const itemType = item.type === 'tender' ? 'مناقصة' : 'ترسية';
+        console.log(`📤 إرسال ${itemType} ${i + 1}/${newTenders.length}: ${item.title.substring(0, 50)}...`);
         
-        const message = formatTenderMessage(tender, i + 1, newTenders.length);
+        let message;
+        if (item.type === 'award') {
+          const awardIndex = newAwardsList.findIndex(a => a.id === item.id) + 1;
+          message = formatAwardMessage(item, awardIndex, newAwardsList.length);
+        } else {
+          const tenderIndex = newTendersList.findIndex(t => t.id === item.id) + 1;
+          message = formatTenderMessage(item, tenderIndex, newTendersList.length);
+        }
+        
         await sendTelegramMessage(message, chatId);
         
         // إضافة للمرسلة
-        sentIds.add(tender.id);
+        sentIds.add(item.id);
         successCount++;
         
         console.log(`✅ تم الإرسال بنجاح\n`);
@@ -222,7 +273,7 @@ async function sendNewTenders() {
         await sleep(1200);
         
       } catch (error) {
-        console.error(`❌ فشل إرسال المناقصة: ${error.message}\n`);
+        console.error(`❌ فشل الإرسال: ${error.message}\n`);
         failCount++;
         await sleep(3000);
       }

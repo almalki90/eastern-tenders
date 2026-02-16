@@ -1,37 +1,25 @@
 import fs from 'fs';
 import path from 'path';
 
-console.log('🚀 بدء عملية توليد بيانات تجريبية...\n');
+console.log('🚀 بدء عملية توليد بيانات تجريبية (مناقصات + ترسيات)...\n');
 
-// المناطق المستهدفة
 const EASTERN_REGIONS = ['الدمام', 'الخبر', 'الظهران', 'القطيف', 'الجبيل', 'الأحساء', 'حفر الباطن', 'النعيرية', 'رأس الخير', 'الخفجي'];
 
-// توليد بيانات تجريبية
 function generateMockTenders() {
   const types = ['صيانة', 'إنشاء', 'توريد', 'تشغيل', 'استشارات', 'تطوير'];
-  const entities = [
-    'أمانة المنطقة الشرقية',
-    'وزارة التعليم',
-    'وزارة الصحة',
-    'أرامكو السعودية',
-    'الهيئة الملكية للجبيل',
-    'شركة الكهرباء',
-    'وزارة الشؤون البلدية',
-    'الهيئة العامة للطرق',
-  ];
+  const entities = ['أمانة المنطقة الشرقية', 'وزارة التعليم', 'وزارة الصحة', 'أرامكو السعودية', 'الهيئة الملكية للجبيل', 'شركة الكهرباء'];
   
   const mockTenders = [];
-  
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 12; i++) {
     const city = EASTERN_REGIONS[Math.floor(Math.random() * EASTERN_REGIONS.length)];
     const type = types[Math.floor(Math.random() * types.length)];
     const entity = entities[Math.floor(Math.random() * entities.length)];
-    
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 60) + 5);
     
     mockTenders.push({
       id: `tender-${Date.now()}-${i}`,
+      type: 'tender',
       title: `مناقصة ${type} في ${city}`,
       description: `مناقصة لأعمال ${type} في منطقة ${city} - المنطقة الشرقية. تتضمن الأعمال التصميم والتنفيذ والصيانة حسب المواصفات المطلوبة.`,
       location: city,
@@ -44,27 +32,52 @@ function generateMockTenders() {
       scrapedAt: new Date().toISOString()
     });
   }
-  
   return mockTenders;
 }
 
-// حفظ البيانات
+function generateMockAwards() {
+  const types = ['صيانة', 'إنشاء', 'توريد', 'تشغيل', 'استشارات', 'تطوير'];
+  const entities = ['أمانة المنطقة الشرقية', 'وزارة التعليم', 'وزارة الصحة', 'أرامكو السعودية', 'الهيئة الملكية للجبيل', 'شركة الكهرباء'];
+  const companies = ['شركة البناء المتطور', 'مؤسسة الإنشاءات الحديثة', 'شركة التقنية المتقدمة', 'مجموعة الخليج للمقاولات', 'شركة الشرق للتطوير'];
+  
+  const mockAwards = [];
+  for (let i = 0; i < 8; i++) {
+    const city = EASTERN_REGIONS[Math.floor(Math.random() * EASTERN_REGIONS.length)];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const entity = entities[Math.floor(Math.random() * entities.length)];
+    const company = companies[Math.floor(Math.random() * companies.length)];
+    const awardDate = new Date();
+    awardDate.setDate(awardDate.getDate() - Math.floor(Math.random() * 30));
+    const amount = (Math.floor(Math.random() * 50) + 10) * 100000;
+    
+    mockAwards.push({
+      id: `award-${Date.now()}-${i}`,
+      type: 'award',
+      title: `ترسية مشروع ${type} في ${city}`,
+      description: `تم ترسية مشروع ${type} في منطقة ${city} على ${company}. قيمة العقد: ${amount.toLocaleString('ar-SA')} ريال.`,
+      location: city,
+      region: city,
+      awardDate: awardDate.toISOString().split('T')[0],
+      entity: entity,
+      winner: company,
+      amount: amount,
+      link: `https://www.monafasat.gov.sa/award/${200000 + i}`,
+      source: 'منصة إعلان',
+      status: 'awarded',
+      scrapedAt: new Date().toISOString()
+    });
+  }
+  return mockAwards;
+}
+
 const tenders = generateMockTenders();
+const awards = generateMockAwards();
+const allData = [...tenders, ...awards];
+
 const dataPath = path.join(process.cwd(), 'data', 'tenders.json');
-fs.writeFileSync(dataPath, JSON.stringify(tenders, null, 2), 'utf-8');
+fs.writeFileSync(dataPath, JSON.stringify(allData, null, 2), 'utf-8');
 
-console.log(`✅ تم توليد ${tenders.length} مناقصة تجريبية`);
-console.log(`💾 تم الحفظ في: data/tenders.json\n`);
-
-// إحصائيات
-const stats = {};
-tenders.forEach(t => {
-  stats[t.region] = (stats[t.region] || 0) + 1;
-});
-
-console.log('📊 إحصائيات حسب المنطقة:');
-Object.entries(stats).forEach(([region, count]) => {
-  console.log(`   ${region}: ${count} مناقصة`);
-});
-
-console.log('\n✨ تمت العملية بنجاح!');
+console.log(`✅ تم توليد ${tenders.length} مناقصة`);
+console.log(`✅ تم توليد ${awards.length} ترسية`);
+console.log(`💾 إجمالي: ${allData.length} عنصر\n`);
+console.log('✨ تمت العملية بنجاح!');
