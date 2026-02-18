@@ -6,18 +6,56 @@
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { getRandomImage, CATEGORIES } from './multi-source-service.js';
+import { getRandomUnsplashImage, UNSPLASH_DECOR_CATEGORIES } from './unsplash-service.js';
+import { getRandomPexelsImage, PEXELS_DECOR_CATEGORIES } from './pexels-service.js';
 
 dotenv.config();
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const CHANNEL_ID = process.env.TELEGRAM_CHAT_ID || '@afhafhdikor';
 
-const FURNITURE_CATEGORIES = ['غرف_نوم', 'حمامات', 'مطابخ', 'غرف_معيشة', 'طاولات_طعام', 'مداخل', 'كراسي', 'ساعات', 'نباتات', 'قطع_ديكور'];
 const DECOR_CATEGORIES = ['شموع', 'إضاءة', 'فازات', 'مرايا', 'لوحات_فنية', 'ديكورات_صغيرة'];
+const CATEGORIES = { ...UNSPLASH_DECOR_CATEGORIES, ...PEXELS_DECOR_CATEGORIES };
 
 // متغير التناوب (سيُحفظ في ملف)
 let isDecorTurn = false;
+
+/**
+ * جلب صورة عشوائية (50% Unsplash, 50% Pexels)
+ */
+async function getRandomImage(categoryKey) {
+  const useUnsplash = Math.random() < 0.5;
+  
+  if (useUnsplash && UNSPLASH_DECOR_CATEGORIES[categoryKey]) {
+    const image = await getRandomUnsplashImage(categoryKey);
+    return {
+      url: image.url,
+      categoryEmoji: UNSPLASH_DECOR_CATEGORIES[categoryKey].emoji,
+      categoryName: UNSPLASH_DECOR_CATEGORIES[categoryKey].name,
+      categoryDescription: UNSPLASH_DECOR_CATEGORIES[categoryKey].description,
+      source: 'unsplash'
+    };
+  } else if (PEXELS_DECOR_CATEGORIES[categoryKey]) {
+    const image = await getRandomPexelsImage(categoryKey);
+    return {
+      url: image.url,
+      categoryEmoji: PEXELS_DECOR_CATEGORIES[categoryKey].emoji,
+      categoryName: PEXELS_DECOR_CATEGORIES[categoryKey].name,
+      categoryDescription: PEXELS_DECOR_CATEGORIES[categoryKey].description,
+      source: 'pexels'
+    };
+  } else {
+    // fallback to Unsplash
+    const image = await getRandomUnsplashImage(categoryKey);
+    return {
+      url: image.url,
+      categoryEmoji: UNSPLASH_DECOR_CATEGORIES[categoryKey].emoji,
+      categoryName: UNSPLASH_DECOR_CATEGORIES[categoryKey].name,
+      categoryDescription: UNSPLASH_DECOR_CATEGORIES[categoryKey].description,
+      source: 'unsplash'
+    };
+  }
+}
 
 // قراءة حالة التناوب من ملف
 try {
