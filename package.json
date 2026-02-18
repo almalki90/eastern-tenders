@@ -5,8 +5,10 @@
   "main": "decor-bot.js",
   "type": "module",
   "scripts": {
-    "start": "node decor-bot.js",
+    "start": "node railway-start.js",
+    "start:local": "node decor-bot.js",
     "bot": "node decor-bot.js",
+    "channel": "node channel-auto-post.js",
     "test": "node telegram-bot.js",
     "test:pexels": "node -e \"import('./pexels-service.js').then(m => m.testPexelsAPI())\"",
     "send": "node telegram-bot.js"

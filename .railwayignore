@@ -1,0 +1,17 @@
+# Ignore datasets (too large for Railway)
+ikea-dataset/
+ikea-dataset2/
+huggingface-dataset/
+*.zip
+*.tar.gz
+
+# Node
+node_modules/
+.npm
+
+# Logs
+*.log
+.pm2/
+
+# Git
+.git/
