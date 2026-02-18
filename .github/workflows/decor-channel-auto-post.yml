@@ -1,0 +1,46 @@
+name: 🎨 إرسال تلقائي للديكور
+
+on:
+  schedule:
+    # كل 6 ساعات: 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: '0 */6 * * *'
+  
+  # تشغيل يدوي
+  workflow_dispatch:
+
+jobs:
+  send-decor-images:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 📦 Install Dependencies
+        run: npm install --production
+      
+      - name: 🎨 Send Decor Images to Channel
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          UNSPLASH_SECRET_KEY: ${{ secrets.UNSPLASH_SECRET_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: |
+          echo "🚀 بدء إرسال الصور للقناة..."
+          node channel-auto-post-once.js
+          echo "✅ تم الإرسال بنجاح!"
+      
+      - name: ✅ Success
+        run: |
+          echo "════════════════════════════════════════"
+          echo "✅ تم إرسال 5 صور للقناة بنجاح!"
+          echo "📍 القناة: @afhafhdikor"
+          echo "⏰ الإرسال التالي بعد 6 ساعات"
+          echo "════════════════════════════════════════"
