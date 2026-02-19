@@ -191,6 +191,33 @@ export const CATEGORIES = {
       unsplash: true,
       pexels: true
     }
+  },
+  'صالات': {
+    emoji: '🛋️',
+    name: 'صالات',
+    description: 'تصاميم صالات وغرف معيشة',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
+  },
+  'أرضيات': {
+    emoji: '🟫',
+    name: 'أرضيات',
+    description: 'أنواع أرضيات وبلاط',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
+  },
+  'أسقف': {
+    emoji: '⬜',
+    name: 'أسقف',
+    description: 'تصاميم أسقف مستعارة وديكور',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
   }
 };
 
