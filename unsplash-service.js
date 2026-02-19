@@ -56,6 +56,48 @@ export const UNSPLASH_DECOR_CATEGORIES = {
     description: 'إكسسوارات ديكور صغيرة',
     queries: ['home accessories', 'decorative objects', 'small decor'],
     query: 'home accessories'
+  },
+  'غرف_نوم': {
+    emoji: '🛏️',
+    name: 'غرف نوم',
+    description: 'تصاميم غرف نوم عصرية',
+    queries: ['bedroom interior', 'modern bedroom', 'bedroom design'],
+    query: 'bedroom interior design'
+  },
+  'مطابخ': {
+    emoji: '🍳',
+    name: 'مطابخ',
+    description: 'تصاميم مطابخ عصرية',
+    queries: ['kitchen interior', 'modern kitchen', 'kitchen design'],
+    query: 'modern kitchen interior'
+  },
+  'مداخل': {
+    emoji: '🚪',
+    name: 'مداخل',
+    description: 'تصاميم مداخل وممرات',
+    queries: ['entryway design', 'foyer interior', 'entrance hall'],
+    query: 'entryway interior design'
+  },
+  'صالات': {
+    emoji: '🛋️',
+    name: 'صالات',
+    description: 'تصاميم صالات وغرف معيشة',
+    queries: ['living room interior', 'modern living room', 'lounge design'],
+    query: 'living room interior design'
+  },
+  'أرضيات': {
+    emoji: '🟫',
+    name: 'أرضيات',
+    description: 'أنواع أرضيات وبلاط',
+    queries: ['flooring design', 'floor tiles', 'wooden floors', 'marble floors'],
+    query: 'modern flooring design'
+  },
+  'أسقف': {
+    emoji: '⬜',
+    name: 'أسقف',
+    description: 'تصاميم أسقف مستعارة وديكور',
+    queries: ['ceiling design', 'false ceiling', 'ceiling decor'],
+    query: 'modern ceiling design'
   }
 };
 

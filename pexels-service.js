@@ -49,6 +49,42 @@ export const PEXELS_DECOR_CATEGORIES = {
     name: 'ديكورات صغيرة',
     description: 'إكسسوارات ديكور صغيرة',
     query: 'home accessories decor'
+  },
+  'غرف_نوم': {
+    emoji: '🛏️',
+    name: 'غرف نوم',
+    description: 'تصاميم غرف نوم عصرية',
+    query: 'bedroom interior design'
+  },
+  'مطابخ': {
+    emoji: '🍳',
+    name: 'مطابخ',
+    description: 'تصاميم مطابخ عصرية',
+    query: 'modern kitchen interior'
+  },
+  'مداخل': {
+    emoji: '🚪',
+    name: 'مداخل',
+    description: 'تصاميم مداخل وممرات',
+    query: 'entryway interior design'
+  },
+  'صالات': {
+    emoji: '🛋️',
+    name: 'صالات',
+    description: 'تصاميم صالات وغرف معيشة',
+    query: 'living room interior design'
+  },
+  'أرضيات': {
+    emoji: '🟫',
+    name: 'أرضيات',
+    description: 'أنواع أرضيات وبلاط',
+    query: 'flooring design tiles'
+  },
+  'أسقف': {
+    emoji: '⬜',
+    name: 'أسقف',
+    description: 'تصاميم أسقف مستعارة وديكور',
+    query: 'ceiling design interior'
   }
 };
 
