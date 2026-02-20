@@ -1,29 +1,30 @@
 /**
  * Railway Startup Script
- * يشغّل فقط channel-auto-post (الإرسال التلقائي)
- * decor-bot يعمل فقط عند المحادثة المباشرة
+ * يشغّل decor-bot التفاعلي 24/7
  */
 
 import { spawn } from 'child_process';
 
-console.log('🚀 Railway: بدء تشغيل نظام الإرسال التلقائي...\n');
+console.log('🚀 Railway: بدء تشغيل البوت التفاعلي 24/7...\n');
 
-// تشغيل channel-auto-post فقط
-const autoPost = spawn('node', ['channel-auto-post.js'], {
+// تشغيل decor-bot التفاعلي
+const decorBot = spawn('node', ['decor-bot.js'], {
   stdio: 'inherit',
   cwd: process.cwd()
 });
 
-autoPost.on('error', (err) => {
-  console.error('❌ خطأ في تشغيل channel-auto-post:', err);
+decorBot.on('error', (err) => {
+  console.error('❌ خطأ في تشغيل decor-bot:', err);
   process.exit(1);
 });
 
-autoPost.on('close', (code) => {
-  console.log(`⚠️ channel-auto-post توقف بالكود: ${code}`);
+decorBot.on('close', (code) => {
+  console.log(`⚠️ decor-bot توقف بالكود: ${code}`);
+  console.log('🔄 إعادة التشغيل...');
   process.exit(code);
 });
 
-console.log('✅ النظام يعمل على Railway!');
+console.log('✅ البوت التفاعلي يعمل على Railway!');
+console.log('🤖 البوت: @Khatwaabot');
 console.log('📍 القناة: @afhafhdikor');
-console.log('⏱️  إرسال تلقائي كل 6 ساعات\n');
+console.log('⏱️  متاح 24/7 للاستخدام\n');
