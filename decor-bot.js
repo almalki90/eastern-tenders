@@ -370,8 +370,6 @@ bot.on('message', async (msg) => {
 ${image.categoryEmoji} *${image.categoryName}*
 
 📝 ${image.categoryDescription}
-
-💡 احفظ الصورة ثم استخدمها للبحث عن المنتج في جوجل
         `.trim();
         
         await bot.sendPhoto(chatId, image.url, {
