@@ -44,7 +44,9 @@ export const CATEGORIES = {
     sources: {
       ikea1: ['bed'],
       ikea2: ['Bedroom'],
-      huggingface: ['bedroom', '.']  // المجلد + الصور في الجذر
+      huggingface: ['bedroom', '.'],
+      unsplash: true,
+      pexels: true
     }
   },
   'حمامات': {
@@ -54,7 +56,9 @@ export const CATEGORIES = {
     sources: {
       ikea1: [],
       ikea2: ['Bathroom'],
-      huggingface: ['bathroom', '.']
+      huggingface: ['bathroom', '.'],
+      unsplash: true,
+      pexels: true
     }
   },
   'مطابخ': {
@@ -64,17 +68,21 @@ export const CATEGORIES = {
     sources: {
       ikea1: [],
       ikea2: ['Kitchen 1'],
-      huggingface: ['kitchen', '.']
+      huggingface: ['kitchen', '.'],
+      unsplash: true,
+      pexels: true
     }
   },
   'غرف_معيشة': {
     emoji: '🛋️',
-    name: 'غرف معيشة',
+    name: 'صالات',
     description: 'صالات وغرف جلوس مريحة',
     sources: {
       ikea1: ['couch', 'room_scenes'],
       ikea2: ['Living Room 1'],
-      huggingface: ['living', '.']
+      huggingface: ['living', '.'],
+      unsplash: true,
+      pexels: true
     }
   },
   'طاولات_طعام': {
@@ -94,7 +102,9 @@ export const CATEGORIES = {
     sources: {
       ikea1: [],
       ikea2: ['Hallway'],
-      huggingface: ['.']
+      huggingface: ['.'],
+      unsplash: true,
+      pexels: true
     }
   },
   'كراسي': {
@@ -138,6 +148,24 @@ export const CATEGORIES = {
     }
   },
   // فئات الديكور من Unsplash و Pexels API - تصاميم كاملة للأماكن
+  'أسقف': {
+    emoji: '⬜',
+    name: 'أسقف',
+    description: 'تصاميم أسقف مستعارة',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
+  },
+  'أرضيات': {
+    emoji: '🟫',
+    name: 'أرضيات',
+    description: 'تصاميم أرضيات وبلاط',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
+  },
   'جدران': {
     emoji: '🧱',
     name: 'جدران',
