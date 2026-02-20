@@ -15,18 +15,16 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const CHANNEL_ID = process.env.TELEGRAM_CHAT_ID || '@afhafhdikor';
 
 const DECOR_CATEGORIES = [
-  'شموع', 
-  'إضاءة', 
-  'فازات', 
-  'مرايا', 
-  'لوحات_فنية', 
-  'ديكورات_صغيرة',
-  'غرف_نوم',
   'مطابخ',
-  'مداخل',
+  'غرف_نوم',
   'صالات',
+  'مداخل',
+  'أسقف',
   'أرضيات',
-  'أسقف'
+  'جدران',
+  'حمامات',
+  'أسطح',
+  'حدائق_خلفية'
 ];
 const CATEGORIES = { ...UNSPLASH_DECOR_CATEGORIES, ...PEXELS_DECOR_CATEGORIES };
 

@@ -11,80 +11,69 @@ const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 const PEXELS_API_BASE = 'https://api.pexels.com/v1';
 
 /**
- * فئات الديكور من Pexels (نفس فئات Unsplash)
+ * فئات الديكور من Pexels
+ * تصاميم كاملة للأماكن (نفس فئات Unsplash)
  */
 export const PEXELS_DECOR_CATEGORIES = {
-  'شموع': {
-    emoji: '🕯️',
-    name: 'شموع',
-    description: 'شموع ديكورية معطرة',
-    query: 'scented candles home decor'
-  },
-  'إضاءة': {
-    emoji: '💡',
-    name: 'إضاءة ديكورية',
-    description: 'مصابيح وإضاءة منزلية',
-    query: 'modern table lamp interior'
-  },
-  'فازات': {
-    emoji: '🏺',
-    name: 'فازات وأواني',
-    description: 'فازات زهور وأواني ديكورية',
-    query: 'decorative vase flowers home'
-  },
-  'مرايا': {
-    emoji: '🪞',
-    name: 'مرايا ديكورية',
-    description: 'مرايا حائط وديكور',
-    query: 'wall mirror home decor'
-  },
-  'لوحات_فنية': {
-    emoji: '🖼️',
-    name: 'لوحات فنية',
-    description: 'لوحات جدارية وفن تشكيلي',
-    query: 'framed wall art interior'
-  },
-  'ديكورات_صغيرة': {
-    emoji: '🎨',
-    name: 'ديكورات صغيرة',
-    description: 'إكسسوارات ديكور صغيرة',
-    query: 'home decor accessories interior'
-  },
-  'غرف_نوم': {
-    emoji: '🛏️',
-    name: 'غرف نوم',
-    description: 'تصاميم غرف نوم عصرية',
-    query: 'modern bedroom interior'
-  },
   'مطابخ': {
     emoji: '🍳',
     name: 'مطابخ',
     description: 'تصاميم مطابخ عصرية',
     query: 'kitchen interior design'
   },
-  'مداخل': {
-    emoji: '🚪',
-    name: 'مداخل',
-    description: 'تصاميم مداخل وممرات',
-    query: 'home entryway design interior'
+  'غرف_نوم': {
+    emoji: '🛏️',
+    name: 'غرف نوم',
+    description: 'تصاميم غرف نوم كاملة',
+    query: 'bedroom interior design'
   },
   'صالات': {
     emoji: '🛋️',
     name: 'صالات',
     description: 'تصاميم صالات وغرف معيشة',
-    query: 'modern living room interior'
+    query: 'living room interior design'
   },
-  'أرضيات': {
-    emoji: '🟫',
-    name: 'أرضيات',
-    description: 'أنواع أرضيات وبلاط',
-    query: 'interior floor tiles design'
+  'مداخل': {
+    emoji: '🚪',
+    name: 'مداخل',
+    description: 'تصاميم مداخل وممرات',
+    query: 'home entryway interior'
   },
   'أسقف': {
     emoji: '⬜',
     name: 'أسقف',
-    description: 'تصاميم أسقف مستعارة وديكور',
-    query: 'false ceiling interior design'
+    description: 'تصاميم أسقف مستعارة',
+    query: 'false ceiling interior'
+  },
+  'أرضيات': {
+    emoji: '🟫',
+    name: 'أرضيات',
+    description: 'تصاميم أرضيات وبلاط',
+    query: 'interior flooring design'
+  },
+  'جدران': {
+    emoji: '🧱',
+    name: 'جدران',
+    description: 'تصاميم جدران وديكورات حائط',
+    query: 'interior wall design'
+  },
+  'حمامات': {
+    emoji: '🚿',
+    name: 'حمامات',
+    description: 'تصاميم حمامات عصرية',
+    query: 'modern bathroom interior'
+  },
+  'أسطح': {
+    emoji: '🏠',
+    name: 'أسطح',
+    description: 'تصاميم أسطح وروف',
+    query: 'rooftop terrace design'
+  },
+  'حدائق_خلفية': {
+    emoji: '🌳',
+    name: 'حدائق خلفية',
+    description: 'تصاميم حدائق منزلية',
+    query: 'backyard landscape design'
   }
 };
 

@@ -137,83 +137,29 @@ export const CATEGORIES = {
       huggingface: ['.']
     }
   },
-  // فئات الديكور من Unsplash و Pexels API
-  'شموع': {
-    emoji: '🕯️',
-    name: 'شموع',
-    description: 'شموع ديكورية معطرة',
-    sources: {
-      unsplash: true, // يستخدم Unsplash API
-      pexels: true    // يستخدم Pexels API
-    }
-  },
-  'إضاءة': {
-    emoji: '💡',
-    name: 'إضاءة ديكورية',
-    description: 'مصابيح وإضاءة منزلية',
+  // فئات الديكور من Unsplash و Pexels API - تصاميم كاملة للأماكن
+  'جدران': {
+    emoji: '🧱',
+    name: 'جدران',
+    description: 'تصاميم جدران وديكورات حائط',
     sources: {
       unsplash: true,
       pexels: true
     }
   },
-  'فازات': {
-    emoji: '🏺',
-    name: 'فازات وأواني',
-    description: 'فازات زهور وأواني ديكورية',
+  'أسطح': {
+    emoji: '🏠',
+    name: 'أسطح',
+    description: 'تصاميم أسطح وروف',
     sources: {
       unsplash: true,
       pexels: true
     }
   },
-  'مرايا': {
-    emoji: '🪞',
-    name: 'مرايا ديكورية',
-    description: 'مرايا حائط وديكور',
-    sources: {
-      unsplash: true,
-      pexels: true
-    }
-  },
-  'لوحات_فنية': {
-    emoji: '🖼️',
-    name: 'لوحات فنية',
-    description: 'لوحات جدارية وفن تشكيلي',
-    sources: {
-      unsplash: true,
-      pexels: true
-    }
-  },
-  'ديكورات_صغيرة': {
-    emoji: '🎨',
-    name: 'ديكورات صغيرة',
-    description: 'إكسسوارات ديكور صغيرة',
-    sources: {
-      unsplash: true,
-      pexels: true
-    }
-  },
-  'صالات': {
-    emoji: '🛋️',
-    name: 'صالات',
-    description: 'تصاميم صالات وغرف معيشة',
-    sources: {
-      unsplash: true,
-      pexels: true
-    }
-  },
-  'أرضيات': {
-    emoji: '🟫',
-    name: 'أرضيات',
-    description: 'أنواع أرضيات وبلاط',
-    sources: {
-      unsplash: true,
-      pexels: true
-    }
-  },
-  'أسقف': {
-    emoji: '⬜',
-    name: 'أسقف',
-    description: 'تصاميم أسقف مستعارة وديكور',
+  'حدائق_خلفية': {
+    emoji: '🌳',
+    name: 'حدائق خلفية',
+    description: 'تصاميم حدائق منزلية',
     sources: {
       unsplash: true,
       pexels: true
