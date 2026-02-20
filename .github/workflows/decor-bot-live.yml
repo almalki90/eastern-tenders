@@ -1,0 +1,55 @@
+name: 🤖 البوت التفاعلي 24/7
+
+on:
+  # تشغيل يدوي
+  workflow_dispatch:
+  
+  # تشغيل تلقائي كل 5 دقائق (لإبقاء البوت حي)
+  schedule:
+    - cron: '*/5 * * * *'  # كل 5 دقائق
+  
+  # تشغيل عند push للكود
+  push:
+    branches:
+      - main
+    paths:
+      - 'decor-bot.js'
+      - 'multi-source-service.js'
+      - 'unsplash-service.js'
+      - 'pexels-service.js'
+
+jobs:
+  run-interactive-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # كل تشغيل يستمر 5 دقائق فقط
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: 📦 Install Dependencies
+        run: npm install --production
+      
+      - name: 🤖 Run Interactive Bot (5 min)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          UNSPLASH_SECRET_KEY: ${{ secrets.UNSPLASH_SECRET_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: |
+          echo "🤖 بدء تشغيل البوت التفاعلي..."
+          echo "⏱️ سيعمل لمدة 5 دقائق ثم يعيد التشغيل"
+          
+          # تشغيل البوت مع timeout 4 دقائق و 50 ثانية
+          timeout 290s node decor-bot.js || true
+          
+          echo "✅ انتهى وقت التشغيل - سيبدأ من جديد بعد 5 دقائق"
