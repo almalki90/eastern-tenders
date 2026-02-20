@@ -18,73 +18,73 @@ export const PEXELS_DECOR_CATEGORIES = {
     emoji: '🕯️',
     name: 'شموع',
     description: 'شموع ديكورية معطرة',
-    query: 'candles home decor'
+    query: 'scented candles home decor'
   },
   'إضاءة': {
     emoji: '💡',
     name: 'إضاءة ديكورية',
     description: 'مصابيح وإضاءة منزلية',
-    query: 'decorative lighting lamps'
+    query: 'modern table lamp interior'
   },
   'فازات': {
     emoji: '🏺',
     name: 'فازات وأواني',
     description: 'فازات زهور وأواني ديكورية',
-    query: 'vases home decor'
+    query: 'decorative vase flowers home'
   },
   'مرايا': {
     emoji: '🪞',
     name: 'مرايا ديكورية',
     description: 'مرايا حائط وديكور',
-    query: 'decorative mirrors'
+    query: 'wall mirror home decor'
   },
   'لوحات_فنية': {
     emoji: '🖼️',
     name: 'لوحات فنية',
     description: 'لوحات جدارية وفن تشكيلي',
-    query: 'wall art paintings'
+    query: 'framed wall art interior'
   },
   'ديكورات_صغيرة': {
     emoji: '🎨',
     name: 'ديكورات صغيرة',
     description: 'إكسسوارات ديكور صغيرة',
-    query: 'home accessories decor'
+    query: 'home decor accessories interior'
   },
   'غرف_نوم': {
     emoji: '🛏️',
     name: 'غرف نوم',
     description: 'تصاميم غرف نوم عصرية',
-    query: 'bedroom interior design'
+    query: 'modern bedroom interior'
   },
   'مطابخ': {
     emoji: '🍳',
     name: 'مطابخ',
     description: 'تصاميم مطابخ عصرية',
-    query: 'modern kitchen interior'
+    query: 'kitchen interior design'
   },
   'مداخل': {
     emoji: '🚪',
     name: 'مداخل',
     description: 'تصاميم مداخل وممرات',
-    query: 'entryway interior design'
+    query: 'home entryway design interior'
   },
   'صالات': {
     emoji: '🛋️',
     name: 'صالات',
     description: 'تصاميم صالات وغرف معيشة',
-    query: 'living room interior design'
+    query: 'modern living room interior'
   },
   'أرضيات': {
     emoji: '🟫',
     name: 'أرضيات',
     description: 'أنواع أرضيات وبلاط',
-    query: 'flooring design tiles'
+    query: 'interior floor tiles design'
   },
   'أسقف': {
     emoji: '⬜',
     name: 'أسقف',
     description: 'تصاميم أسقف مستعارة وديكور',
-    query: 'ceiling design interior'
+    query: 'false ceiling interior design'
   }
 };
 

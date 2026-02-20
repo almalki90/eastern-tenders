@@ -20,84 +20,84 @@ export const UNSPLASH_DECOR_CATEGORIES = {
     name: 'شموع',
     description: 'شموع ديكورية معطرة',
     queries: ['candles home decor', 'scented candles', 'decorative candles'],
-    query: 'candles home decor'
+    query: 'scented candles home'
   },
   'إضاءة': {
     emoji: '💡',
     name: 'إضاءة ديكورية',
     description: 'مصابيح وإضاءة منزلية',
     queries: ['table lamps', 'floor lamps', 'pendant lights', 'decorative lighting'],
-    query: 'decorative lighting'
+    query: 'modern table lamp'
   },
   'فازات': {
     emoji: '🏺',
     name: 'فازات وأواني',
     description: 'فازات زهور وأواني ديكورية',
     queries: ['vases', 'decorative pots', 'flower vases'],
-    query: 'vases'
+    query: 'decorative vase home'
   },
   'مرايا': {
     emoji: '🪞',
     name: 'مرايا ديكورية',
     description: 'مرايا حائط وديكور',
     queries: ['decorative mirrors', 'wall mirrors', 'round mirrors'],
-    query: 'decorative mirrors'
+    query: 'wall mirror decor'
   },
   'لوحات_فنية': {
     emoji: '🖼️',
     name: 'لوحات فنية',
     description: 'لوحات جدارية وفن تشكيلي',
     queries: ['wall art', 'paintings', 'art prints', 'framed art'],
-    query: 'wall art'
+    query: 'framed wall art'
   },
   'ديكورات_صغيرة': {
     emoji: '🎨',
     name: 'ديكورات صغيرة',
     description: 'إكسسوارات ديكور صغيرة',
     queries: ['home accessories', 'decorative objects', 'small decor'],
-    query: 'home accessories'
+    query: 'home decor accessories'
   },
   'غرف_نوم': {
     emoji: '🛏️',
     name: 'غرف نوم',
     description: 'تصاميم غرف نوم عصرية',
     queries: ['bedroom interior', 'modern bedroom', 'bedroom design'],
-    query: 'bedroom interior design'
+    query: 'modern bedroom interior'
   },
   'مطابخ': {
     emoji: '🍳',
     name: 'مطابخ',
     description: 'تصاميم مطابخ عصرية',
     queries: ['kitchen interior', 'modern kitchen', 'kitchen design'],
-    query: 'modern kitchen interior'
+    query: 'kitchen interior design'
   },
   'مداخل': {
     emoji: '🚪',
     name: 'مداخل',
     description: 'تصاميم مداخل وممرات',
     queries: ['entryway design', 'foyer interior', 'entrance hall'],
-    query: 'entryway interior design'
+    query: 'home entryway design'
   },
   'صالات': {
     emoji: '🛋️',
     name: 'صالات',
     description: 'تصاميم صالات وغرف معيشة',
     queries: ['living room interior', 'modern living room', 'lounge design'],
-    query: 'living room interior design'
+    query: 'modern living room interior'
   },
   'أرضيات': {
     emoji: '🟫',
     name: 'أرضيات',
     description: 'أنواع أرضيات وبلاط',
     queries: ['flooring design', 'floor tiles', 'wooden floors', 'marble floors'],
-    query: 'modern flooring design'
+    query: 'interior floor tiles design'
   },
   'أسقف': {
     emoji: '⬜',
     name: 'أسقف',
     description: 'تصاميم أسقف مستعارة وديكور',
     queries: ['ceiling design', 'false ceiling', 'ceiling decor'],
-    query: 'modern ceiling design'
+    query: 'false ceiling interior design'
   }
 };
 
