@@ -17,14 +17,16 @@ const CHANNEL_ID = process.env.TELEGRAM_CHAT_ID || '@afhafhdikor';
 const DECOR_CATEGORIES = [
   'مطابخ',
   'غرف_نوم',
-  'صالات',
+  'غرف_معيشة',
   'مداخل',
   'أسقف',
   'أرضيات',
   'جدران',
   'حمامات',
   'أسطح',
-  'حدائق_خلفية'
+  'حدائق_خلفية',
+  'صالات_جلوس',
+  'ديكور_تلفزيون'
 ];
 const CATEGORIES = { ...UNSPLASH_DECOR_CATEGORIES, ...PEXELS_DECOR_CATEGORIES };
 

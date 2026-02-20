@@ -74,6 +74,18 @@ export const PEXELS_DECOR_CATEGORIES = {
     name: 'حدائق خلفية',
     description: 'تصاميم حدائق منزلية',
     query: 'backyard landscape design'
+  },
+  'صالات_جلوس': {
+    emoji: '🪑',
+    name: 'صالات جلوس',
+    description: 'تصاميم صالات استقبال وجلوس',
+    query: 'sitting room interior design'
+  },
+  'ديكور_تلفزيون': {
+    emoji: '📺',
+    name: 'ديكور التلفزيون',
+    description: 'تصاميم جدار التلفزيون وديكوره',
+    query: 'living room tv wall'
   }
 };
 

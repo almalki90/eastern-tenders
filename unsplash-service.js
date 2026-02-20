@@ -84,6 +84,20 @@ export const UNSPLASH_DECOR_CATEGORIES = {
     description: 'تصاميم حدائق منزلية',
     queries: ['backyard design', 'garden landscape', 'outdoor living'],
     query: 'backyard landscape design'
+  },
+  'صالات_جلوس': {
+    emoji: '🪑',
+    name: 'صالات جلوس',
+    description: 'تصاميم صالات استقبال وجلوس',
+    queries: ['sitting room design', 'lounge interior', 'reception room'],
+    query: 'sitting room interior design'
+  },
+  'ديكور_تلفزيون': {
+    emoji: '📺',
+    name: 'ديكور التلفزيون',
+    description: 'تصاميم جدار التلفزيون وديكوره',
+    queries: ['tv wall design', 'television unit interior', 'media wall'],
+    query: 'living room tv wall'
   }
 };
 

@@ -192,6 +192,24 @@ export const CATEGORIES = {
       unsplash: true,
       pexels: true
     }
+  },
+  'صالات_جلوس': {
+    emoji: '🪑',
+    name: 'صالات جلوس',
+    description: 'تصاميم صالات استقبال وجلوس',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
+  },
+  'ديكور_تلفزيون': {
+    emoji: '📺',
+    name: 'ديكور التلفزيون',
+    description: 'تصاميم جدار التلفزيون وديكوره',
+    sources: {
+      unsplash: true,
+      pexels: true
+    }
   }
 };
 
