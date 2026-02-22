@@ -7,6 +7,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { getRandomImage, CATEGORIES, getDetailedStats } from './multi-source-service.js';
+import { getRandomWallhavenImage, WALLHAVEN_CATEGORIES } from './wallhaven-service.js';
 
 dotenv.config();
 
@@ -23,7 +24,7 @@ console.log(`📂 عدد التصنيفات: ${Object.keys(stats.categories).len
 const userSourceSelection = {};
 
 /**
- * معلومات الأقسام - مقسمة إلى أثاث وديكورات
+ * معلومات الأقسام - مقسمة إلى أثاث وديكورات وورق جدران
  */
 const SOURCES = {
   furniture: {
@@ -39,6 +40,13 @@ const SOURCES = {
     emoji: '🎨',
     type: 'decor',
     categories: ['مطابخ', 'غرف_نوم', 'غرف_معيشة', 'مداخل', 'أسقف', 'أرضيات', 'جدران', 'حمامات', 'أسطح', 'حدائق_خلفية', 'صالات_جلوس', 'ديكور_تلفزيون']
+  },
+  wallpapers: {
+    name: 'ورق جدران',
+    description: 'صور عالية الجودة 4K+ - خلفيات احترافية',
+    emoji: '🖼️',
+    type: 'wallpapers',
+    categories: ['nature', 'city', 'space', 'art', 'animals', 'cars', 'gaming', 'flowers', 'ocean', 'kids']
   }
 };
 
@@ -63,12 +71,13 @@ function getRandomTip() {
 }
 
 /**
- * أزرار اختيار القسم (أثاث / ديكورات)
+ * أزرار اختيار القسم (أثاث / ديكورات / ورق جدران)
  */
 const sourceKeyboard = {
   reply_markup: {
     keyboard: [
       ['🪑 أثاث', '🎨 ديكورات'],
+      ['🖼️ ورق جدران'],
       ['📊 الإحصائيات']
     ],
     resize_keyboard: true
@@ -85,17 +94,20 @@ function getCategoryKeyboard(sourceKey) {
   const categories = source.categories;
   const buttons = [];
   
+  // تحديد مصدر التصنيفات (عادي أو Wallhaven)
+  const categorySource = sourceKey === 'wallpapers' ? WALLHAVEN_CATEGORIES : CATEGORIES;
+  
   // ترتيب الأزرار في صفوف (زرين في كل صف)
   for (let i = 0; i < categories.length; i += 2) {
     const row = [];
     
-    const cat1 = CATEGORIES[categories[i]];
+    const cat1 = categorySource[categories[i]];
     if (cat1) {
       row.push(`${cat1.emoji} ${cat1.name}`);
     }
     
     if (i + 1 < categories.length) {
-      const cat2 = CATEGORIES[categories[i + 1]];
+      const cat2 = categorySource[categories[i + 1]];
       if (cat2) {
         row.push(`${cat2.emoji} ${cat2.name}`);
       }
@@ -157,8 +169,8 @@ bot.onText(/\/start/, async (msg) => {
 
 📦 *المحتوى المتاح:*
 • *${stats.total.toLocaleString('ar-EG')} صورة* حقيقية
-• *${Object.keys(SOURCES).length} قسمين* (أثاث + ديكورات)
-• *${Object.keys(CATEGORIES).length} تصنيفاً* مختلفاً
+• *${Object.keys(SOURCES).length} أقسام* (أثاث + ديكورات + ورق جدران)
+• *${Object.keys(CATEGORIES).length + Object.keys(WALLHAVEN_CATEGORIES).length} تصنيفاً* مختلفاً
 
 🔹 اختر القسم من الأزرار أدناه
 🔹 ثم اختر التصنيف الذي تريد
@@ -191,6 +203,11 @@ bot.onText(/\/sources/, (msg) => {
 • ${SOURCES.decor.description}
 • شموع، مرايا، لوحات، إضاءة، فازات
 • التصنيفات: شموع، إضاءة، فازات، مرايا، إلخ
+
+🖼️ *ورق جدران*
+• ${SOURCES.wallpapers.description}
+• مناظر طبيعية، فضاء، فن، حيوانات، سيارات
+• التصنيفات: مناظر، مدن، فضاء، فن، حيوانات، إلخ
 
 اختر من الأزرار أدناه 👇
   `.trim();
@@ -304,6 +321,20 @@ bot.on('message', async (msg) => {
     return;
   }
   
+  // اختيار قسم ورق الجدران
+  if (text?.includes('ورق جدران') || text?.includes('🖼️')) {
+    userSourceSelection[chatId] = 'wallpapers';
+    
+    bot.sendMessage(chatId,
+      `✅ تم اختيار: *ورق جدران*\n\n${SOURCES.wallpapers.description}\n\nاختر التصنيف:`,
+      {
+        parse_mode: 'Markdown',
+        ...getCategoryKeyboard('wallpapers')
+      }
+    );
+    return;
+  }
+  
   // زر الرجوع للأقسام
   if (text?.includes('الأقسام') || text?.includes('🔙')) {
     delete userSourceSelection[chatId];
@@ -327,7 +358,10 @@ bot.on('message', async (msg) => {
   // تحديد التصنيف
   let categoryKey = null;
   
-  for (const [key, category] of Object.entries(CATEGORIES)) {
+  // تحديد المصدر المناسب حسب القسم
+  const categorySource = selectedSource === 'wallpapers' ? WALLHAVEN_CATEGORIES : CATEGORIES;
+  
+  for (const [key, category] of Object.entries(categorySource)) {
     if (text?.includes(category.name) || text?.includes(category.emoji)) {
       categoryKey = key;
       break;
@@ -352,7 +386,14 @@ bot.on('message', async (msg) => {
     // جلب 6 صور
     const images = [];
     for (let i = 0; i < 6; i++) {
-      const image = await getRandomImage(categoryKey);
+      let image;
+      if (selectedSource === 'wallpapers') {
+        // جلب من Wallhaven API
+        image = await getRandomWallhavenImage(categoryKey);
+      } else {
+        // جلب من المصادر الأخرى (أثاث/ديكورات)
+        image = await getRandomImage(categoryKey);
+      }
       images.push(image);
     }
     
@@ -363,8 +404,22 @@ bot.on('message', async (msg) => {
     for (let i = 0; i < images.length; i++) {
       const image = images[i];
       
-      // التحقق من نوع الصورة (Unsplash / Pexels / محلية)
-      if (image.isUnsplash || image.isPexels) {
+      // التحقق من نوع الصورة (Unsplash / Pexels / Wallhaven / محلية)
+      if (image.isWallhaven) {
+        // إرسال صورة من Wallhaven (ورق جدران)
+        const caption = `
+${image.categoryEmoji} *${image.categoryName}*
+
+📝 ${image.categoryDescription}
+📐 الدقة: ${image.resolution}
+        `.trim();
+        
+        await bot.sendPhoto(chatId, image.url, {
+          caption: caption,
+          parse_mode: 'Markdown'
+        });
+        
+      } else if (image.isUnsplash || image.isPexels) {
         // إرسال صورة من Unsplash أو Pexels (ديكورات)
         const caption = `
 ${image.categoryEmoji} *${image.categoryName}*
