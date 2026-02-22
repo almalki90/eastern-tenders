@@ -83,7 +83,7 @@ export const WALLHAVEN_CATEGORIES = {
 export async function getRandomWallhavenImage(categoryKey) {
   try {
     if (!WALLHAVEN_API_KEY) {
-      throw new Error('WALLHAVEN_API_KEY غير موجود في .env');
+      throw new Error('WALLHAVEN_API_KEY غير موجود في Environment Variables');
     }
 
     const category = WALLHAVEN_CATEGORIES[categoryKey];

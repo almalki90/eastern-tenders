@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node railway-start.js",
+    "start:worker": "node worker-start.js",
     "start:local": "node decor-bot.js",
     "bot": "node decor-bot.js",
     "channel": "node channel-auto-post.js",
