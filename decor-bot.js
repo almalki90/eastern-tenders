@@ -489,7 +489,8 @@ ${image.categoryEmoji} *${image.categoryName}*
     console.log(`✅ تم إرسال 6 صور من ${images[0].categoryName} [${selectedSource}] → ${msg.from.first_name}`);
     
   } catch (error) {
-    console.error('❌ خطأ:', error.message);
+    console.error('❌ خطأ تفصيلي:', error);
+    console.error('Stack:', error.stack);
     
     try {
       await bot.deleteMessage(chatId, loadingMsg.message_id);
@@ -497,7 +498,7 @@ ${image.categoryEmoji} *${image.categoryName}*
     
     bot.sendMessage(
       chatId,
-      '❌ عذراً، حدث خطأ. حاول مرة أخرى.',
+      `❌ عذراً، حدث خطأ: ${error.message}\n\nحاول مرة أخرى.`,
       getCategoryKeyboard(selectedSource)
     );
   }
