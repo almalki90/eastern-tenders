@@ -111,15 +111,19 @@ export async function getRandomWallhavenImage(categoryKey) {
       throw new Error(`الفئة ${categoryKey} غير موجودة`);
     }
 
-    // بناء URL البحث
+    // بناء URL البحث مع seed عشوائي لضمان نتائج مختلفة
+    const randomSeed = Math.random().toString(36).substring(7); // seed عشوائي
+    const randomPage = Math.floor(Math.random() * 3) + 1; // صفحة عشوائية (1-3)
+    
     const params = {
       apikey: WALLHAVEN_API_KEY,
       q: category.query,
       categories: category.categories || '100', // استخدام الفئة المحددة
       purity: category.purity || '100', // SFW فقط
       sorting: 'random',
+      seed: randomSeed, // seed مختلف في كل مرة
       atleast: '1920x1080', // دقة عالية على الأقل
-      page: 1
+      page: randomPage // صفحة عشوائية
     };
 
     const response = await axios.get(`${BASE_URL}/search`, { params });
