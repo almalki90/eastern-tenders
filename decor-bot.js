@@ -7,7 +7,9 @@ import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { getRandomImage, CATEGORIES, getDetailedStats } from './multi-source-service.js';
-import { getRandomWallhavenImage, WALLHAVEN_CATEGORIES } from './wallhaven-service.js';
+import { getRandomWallhavenImage, WALLHAVEN_CATEGORIES, searchWallhaven } from './wallhaven-service.js';
+import { searchUnsplash } from './unsplash-service.js';
+import { translateToEnglish } from './translate-service.js';
 
 dotenv.config();
 
@@ -22,6 +24,9 @@ console.log(`📂 عدد التصنيفات: ${Object.keys(stats.categories).len
 
 // تخزين اختيار المستخدم للقسم
 const userSourceSelection = {};
+
+// تخزين حالة البحث المخصص
+const userSearchMode = {};
 
 /**
  * معلومات الأقسام - مقسمة إلى أثاث وديكورات وورق جدران
@@ -117,7 +122,8 @@ function getCategoryKeyboard(sourceKey) {
   }
   
   // إضافة أزرار إضافية
-  buttons.push(['🎲 مفاجأة', '🔙 الأقسام']);
+  buttons.push(['🔍 بحث مخصص', '🎲 مفاجأة']);
+  buttons.push(['🔙 الأقسام']);
   
   return {
     reply_markup: {
@@ -357,6 +363,176 @@ bot.on('message', async (msg) => {
   const selectedSource = userSourceSelection[chatId];
   if (!selectedSource) {
     bot.sendMessage(chatId, '⚠️ اختر القسم أولاً من الأزرار أدناه:', sourceKeyboard);
+    return;
+  }
+  
+  // زر البحث المخصص
+  if (text?.includes('بحث مخصص') || text?.includes('🔍')) {
+    userSearchMode[chatId] = selectedSource;
+    bot.sendMessage(chatId, 
+      `🔍 *البحث المخصص*\n\nاكتب ما تبحث عنه بالعربية:\n\nأمثلة:\n• جبال في الغروب\n• مطبخ عصري أبيض\n• قطة لطيفة\n• سيارة رياضية\n• زهور ملونة\n\n💡 أو اضغط 🔙 للرجوع`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          keyboard: [['🔙 الأقسام']],
+          resize_keyboard: true
+        }
+      }
+    );
+    return;
+  }
+  
+  // إذا كان المستخدم في وضع البحث المخصص
+  if (userSearchMode[chatId]) {
+    const searchQuery = text.trim();
+    
+    // إلغاء وضع البحث
+    delete userSearchMode[chatId];
+    
+    // رسالة تحميل
+    const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري البحث...');
+    
+    try {
+      // ترجمة النص إلى الإنجليزية
+      const englishQuery = translateToEnglish(searchQuery);
+      console.log(`🔍 البحث: "${searchQuery}" → "${englishQuery}"`);
+      
+      // جلب 8 صور
+      const images = [];
+      const targetCount = 6;
+      const fetchCount = 8;
+      
+      for (let i = 0; i < fetchCount; i++) {
+        try {
+          let image;
+          
+          // البحث حسب القسم
+          if (selectedSource === 'wallpapers') {
+            image = await searchWallhaven(englishQuery);
+          } else {
+            // للديكورات والأثاث، استخدام Unsplash
+            image = await searchUnsplash(englishQuery);
+          }
+          
+          images.push(image);
+          
+          // توقف عند الوصول للعدد المطلوب
+          if (images.length >= targetCount) break;
+          
+        } catch (fetchError) {
+          console.warn(`⚠️ فشل جلب صورة ${i + 1}:`, fetchError.message);
+        }
+      }
+      
+      // حذف رسالة التحميل
+      await bot.deleteMessage(chatId, loadingMsg.message_id);
+      
+      // التحقق من وجود صور
+      if (images.length === 0) {
+        bot.sendMessage(chatId, 
+          `❌ لم يتم العثور على صور لـ: *${searchQuery}*\n\n💡 جرب كلمات أخرى أو اضغط 🔍 للبحث مرة أخرى`,
+          {
+            parse_mode: 'Markdown',
+            ...getCategoryKeyboard(selectedSource)
+          }
+        );
+        return;
+      }
+      
+      // إرسال الصور
+      let sentCount = 0;
+      for (let i = 0; i < images.length && sentCount < targetCount; i++) {
+        const image = images[i];
+        
+        // إرسال الصورة
+        if (image.isWallhaven) {
+          const caption = `
+🔍 *بحث مخصص*
+
+📝 ${searchQuery}
+📐 الدقة: ${image.resolution}
+          `.trim();
+          
+          try {
+            await bot.sendPhoto(chatId, image.url, {
+              caption: caption,
+              parse_mode: 'Markdown'
+            });
+            sentCount++;
+          } catch (photoError) {
+            console.log(`⚠️ فشل تحميل الصورة الأصلية، استخدام thumbnail...`);
+            try {
+              await bot.sendPhoto(chatId, image.thumb, {
+                caption: caption + '\n\n⚠️ (نسخة مصغرة)',
+                parse_mode: 'Markdown'
+              });
+              sentCount++;
+            } catch (thumbError) {
+              console.error(`❌ فشل إرسال thumbnail:`, thumbError.message);
+              continue;
+            }
+          }
+        } else if (image.isUnsplash) {
+          const caption = `
+🔍 *بحث مخصص*
+
+📝 ${searchQuery}
+          `.trim();
+          
+          try {
+            await bot.sendPhoto(chatId, image.url, {
+              caption: caption,
+              parse_mode: 'Markdown'
+            });
+            sentCount++;
+          } catch (photoError) {
+            console.warn(`⚠️ فشل إرسال صورة، محاولة استخدام جودة أقل:`, photoError.message);
+            
+            let fallbackUrl = image.url.replace('/regular/', '/small/');
+            
+            try {
+              await bot.sendPhoto(chatId, fallbackUrl, {
+                caption: caption,
+                parse_mode: 'Markdown'
+              });
+              sentCount++;
+            } catch (thumbError) {
+              console.error(`❌ فشل إرسال fallback:`, thumbError.message);
+              continue;
+            }
+          }
+        }
+        
+        // تأخير صغير بين الصور
+        if (i < images.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+      
+      // إرسال keyboard للاختيار
+      await bot.sendMessage(chatId, '📱 ابحث مرة أخرى أو اختر فئة:', getCategoryKeyboard(selectedSource));
+      
+      console.log(`✅ تم إرسال ${sentCount} صور من البحث "${searchQuery}" [${selectedSource}] → ${msg.from.first_name}`);
+      
+      // إشعار إذا كان العدد أقل من 6
+      if (sentCount < 6) {
+        await bot.sendMessage(chatId, `⚠️ تم إرسال ${sentCount} صور فقط بسبب فشل بعض الصور. حاول مرة أخرى!`);
+      }
+      
+    } catch (error) {
+      console.error('❌ خطأ في البحث:', error);
+      
+      try {
+        await bot.deleteMessage(chatId, loadingMsg.message_id);
+      } catch (e) {}
+      
+      bot.sendMessage(
+        chatId,
+        `❌ عذراً، حدث خطأ في البحث: ${error.message}\n\nحاول مرة أخرى.`,
+        getCategoryKeyboard(selectedSource)
+      );
+    }
+    
     return;
   }
   

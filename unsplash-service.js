@@ -161,6 +161,67 @@ export async function getRandomUnsplashImage(categoryKey) {
 }
 
 /**
+ * البحث المخصص في Unsplash
+ * @param {string} query - نص البحث (بالإنجليزية)
+ * @returns {Promise<Object>} - معلومات الصورة
+ */
+export async function searchUnsplash(query) {
+  if (!UNSPLASH_ACCESS_KEY) {
+    throw new Error('مفتاح Unsplash API غير متوفر');
+  }
+
+  if (!query || query.trim() === '') {
+    throw new Error('نص البحث فارغ');
+  }
+
+  try {
+    // استخدام Random endpoint للحصول على صورة عشوائية
+    const url = new URL(`${UNSPLASH_API_BASE}/photos/random`);
+    url.searchParams.append('query', query);
+    url.searchParams.append('orientation', 'landscape');
+    url.searchParams.append('content_filter', 'high');
+    url.searchParams.append('count', '1');
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Unsplash API Error: ${response.status} - ${errorData.errors?.[0] || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    const photo = Array.isArray(data) ? data[0] : data;
+
+    if (!photo || !photo.urls) {
+      throw new Error('لم يتم العثور على صور');
+    }
+
+    return {
+      url: photo.urls.regular, // جودة متوسطة للسرعة
+      downloadUrl: photo.urls.full, // جودة عالية
+      author: photo.user.name,
+      authorUrl: photo.user.links.html,
+      unsplashUrl: photo.links.html,
+      description: photo.description || photo.alt_description || query,
+      categoryName: 'بحث مخصص',
+      categoryEmoji: '🔍',
+      categoryDescription: query,
+      source: 'Unsplash API',
+      sourceKey: 'unsplash',
+      isUnsplash: true
+    };
+
+  } catch (error) {
+    console.error('❌ خطأ في البحث في Unsplash:', error.message);
+    throw error;
+  }
+}
+
+/**
  * جلب صورة عشوائية من أي فئة ديكور
  */
 export async function getRandomDecorImage() {

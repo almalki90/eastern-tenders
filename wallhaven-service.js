@@ -158,6 +158,59 @@ export async function getRandomWallhavenImage(categoryKey) {
 }
 
 /**
+ * البحث المخصص في Wallhaven
+ * @param {string} query - نص البحث (بالإنجليزية أو العربية)
+ * @returns {Promise<Object>} - معلومات الصورة
+ */
+export async function searchWallhaven(query) {
+  if (!WALLHAVEN_API_KEY) {
+    throw new Error('WALLHAVEN_API_KEY غير موجود في .env');
+  }
+
+  if (!query || query.trim() === '') {
+    throw new Error('نص البحث فارغ');
+  }
+
+  try {
+    // إنشاء seed عشوائي لتنويع النتائج
+    const seed = Math.random().toString(36).substring(7);
+    
+    // بناء رابط API
+    const url = `${WALLHAVEN_API_BASE}/search?apikey=${WALLHAVEN_API_KEY}&q=${encodeURIComponent(query)}&categories=100&purity=100&sorting=random&seed=${seed}&atleast=1920x1080&page=1`;
+    
+    const response = await axios.get(url);
+    
+    if (!response.data || !response.data.data || response.data.data.length === 0) {
+      throw new Error('لم يتم العثور على صور');
+    }
+    
+    // اختيار صورة عشوائية من النتائج
+    const wallpapers = response.data.data;
+    const randomWallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
+    
+    return {
+      url: randomWallpaper.path,
+      thumb: randomWallpaper.thumbs.large,
+      resolution: `${randomWallpaper.resolution}`,
+      views: randomWallpaper.views,
+      favorites: randomWallpaper.favorites,
+      colors: randomWallpaper.colors,
+      categoryEmoji: '🔍',
+      categoryName: 'بحث مخصص',
+      categoryDescription: query,
+      isWallhaven: true,
+      sourceKey: 'wallhaven',
+      source: 'Wallhaven',
+      fileSize: randomWallpaper.file_size,
+      fileType: randomWallpaper.file_type
+    };
+  } catch (error) {
+    console.error('❌ خطأ في البحث في Wallhaven:', error.message);
+    throw error;
+  }
+}
+
+/**
  * اختبار خدمة Wallhaven
  */
 export async function testWallhavenService() {
