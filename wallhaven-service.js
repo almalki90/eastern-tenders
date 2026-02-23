@@ -176,7 +176,7 @@ export async function searchWallhaven(query) {
     const seed = Math.random().toString(36).substring(7);
     
     // بناء رابط API
-    const url = `${WALLHAVEN_API_BASE}/search?apikey=${WALLHAVEN_API_KEY}&q=${encodeURIComponent(query)}&categories=100&purity=100&sorting=random&seed=${seed}&atleast=1920x1080&page=1`;
+    const url = `${BASE_URL}/search?apikey=${WALLHAVEN_API_KEY}&q=${encodeURIComponent(query)}&categories=100&purity=100&sorting=random&seed=${seed}&atleast=1920x1080&page=1`;
     
     const response = await axios.get(url);
     
