@@ -122,7 +122,13 @@ function getCategoryKeyboard(sourceKey) {
   }
   
   // إضافة أزرار إضافية
-  buttons.push(['🔍 بحث مخصص', '🎲 مفاجأة']);
+  if (sourceKey === 'wallpapers') {
+    // زر البحث المخصص فقط لورق الجدران
+    buttons.push(['🔍 بحث مخصص', '🎲 مفاجأة']);
+  } else {
+    // بقية الأقسام: مفاجأة فقط
+    buttons.push(['🎲 مفاجأة']);
+  }
   buttons.push(['🔙 الأقسام']);
   
   return {
@@ -366,11 +372,17 @@ bot.on('message', async (msg) => {
     return;
   }
   
-  // زر البحث المخصص
+  // زر البحث المخصص (فقط لورق الجدران)
   if (text?.includes('بحث مخصص') || text?.includes('🔍')) {
+    // التحقق من أن المستخدم في قسم ورق الجدران
+    if (selectedSource !== 'wallpapers') {
+      bot.sendMessage(chatId, '⚠️ البحث المخصص متاح فقط في قسم 🖼️ ورق الجدران', getCategoryKeyboard(selectedSource));
+      return;
+    }
+    
     userSearchMode[chatId] = selectedSource;
     bot.sendMessage(chatId, 
-      `🔍 *البحث المخصص*\n\nاكتب ما تبحث عنه بالعربية:\n\nأمثلة:\n• جبال في الغروب\n• مطبخ عصري أبيض\n• قطة لطيفة\n• سيارة رياضية\n• زهور ملونة\n\n💡 أو اضغط 🔙 للرجوع`,
+      `🔍 *البحث المخصص*\n\nاكتب ما تبحث عنه بالعربية:\n\nأمثلة:\n• جبال في الغروب\n• مدينة ليلية\n• قطة لطيفة\n• سيارة رياضية\n• زهور ملونة\n• بحر وشاطئ\n\n💡 أو اضغط 🔙 للرجوع`,
       {
         parse_mode: 'Markdown',
         reply_markup: {
