@@ -388,25 +388,37 @@ bot.on('message', async (msg) => {
   const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري البحث عن 6 صور...');
   
   try {
-    // جلب 6 صور
+    // جلب 8 صور (للتعويض عن أي صور فاشلة)
     const images = [];
-    for (let i = 0; i < 6; i++) {
-      let image;
-      if (selectedSource === 'wallpapers') {
-        // جلب من Wallhaven API
-        image = await getRandomWallhavenImage(categoryKey);
-      } else {
-        // جلب من المصادر الأخرى (أثاث/ديكورات)
-        image = await getRandomImage(categoryKey);
+    const targetCount = 6; // عدد الصور المطلوب
+    const fetchCount = 8; // جلب عدد أكبر للتعويض
+    
+    for (let i = 0; i < fetchCount; i++) {
+      try {
+        let image;
+        if (selectedSource === 'wallpapers') {
+          // جلب من Wallhaven API
+          image = await getRandomWallhavenImage(categoryKey);
+        } else {
+          // جلب من المصادر الأخرى (أثاث/ديكورات)
+          image = await getRandomImage(categoryKey);
+        }
+        images.push(image);
+        
+        // توقف عند الوصول للعدد المطلوب
+        if (images.length >= targetCount) break;
+        
+      } catch (fetchError) {
+        console.warn(`⚠️ فشل جلب صورة ${i + 1}:`, fetchError.message);
       }
-      images.push(image);
     }
     
     // حذف رسالة التحميل
     await bot.deleteMessage(chatId, loadingMsg.message_id);
     
     // إرسال الصور واحدة تلو الأخرى
-    for (let i = 0; i < images.length; i++) {
+    let sentCount = 0;
+    for (let i = 0; i < images.length && sentCount < targetCount; i++) {
       const image = images[i];
       
       // التحقق من نوع الصورة (Unsplash / Pexels / Wallhaven / محلية)
@@ -425,13 +437,20 @@ ${image.categoryEmoji} *${image.categoryName}*
             caption: caption,
             parse_mode: 'Markdown'
           });
+          sentCount++;
         } catch (photoError) {
           // في حالة الفشل، استخدام thumbnail
           console.log(`⚠️ فشل تحميل الصورة الأصلية، استخدام thumbnail...`);
-          await bot.sendPhoto(chatId, image.thumb, {
-            caption: caption + '\n\n⚠️ (نسخة مصغرة)',
-            parse_mode: 'Markdown'
-          });
+          try {
+            await bot.sendPhoto(chatId, image.thumb, {
+              caption: caption + '\n\n⚠️ (نسخة مصغرة)',
+              parse_mode: 'Markdown'
+            });
+            sentCount++;
+          } catch (thumbError) {
+            console.error(`❌ فشل إرسال thumbnail ل Wallhaven:`, thumbError.message);
+            continue;
+          }
         }
         
       } else if (image.isUnsplash || image.isPexels) {
@@ -442,10 +461,34 @@ ${image.categoryEmoji} *${image.categoryName}*
 📝 ${image.categoryDescription}
         `.trim();
         
-        await bot.sendPhoto(chatId, image.url, {
-          caption: caption,
-          parse_mode: 'Markdown'
-        });
+        try {
+          // محاولة إرسال الصورة الأصلية
+          await bot.sendPhoto(chatId, image.url, {
+            caption: caption,
+            parse_mode: 'Markdown'
+          });
+          sentCount++;
+        } catch (photoError) {
+          console.warn(`⚠️ فشل إرسال صورة ${image.sourceKey}، محاولة استخدام جودة أقل:`, photoError.message);
+          
+          // fallback: استخدام جودة أقل
+          let fallbackUrl = image.url;
+          if (image.isUnsplash) {
+            fallbackUrl = image.url.replace('/regular/', '/small/');
+          }
+          
+          try {
+            await bot.sendPhoto(chatId, fallbackUrl, {
+              caption: caption,
+              parse_mode: 'Markdown'
+            });
+            sentCount++;
+          } catch (thumbError) {
+            console.error(`❌ فشل إرسال fallback أيضاً:`, thumbError.message);
+            // تخطي هذه الصورة والمتابعة
+            continue;
+          }
+        }
         
       } else {
         // إرسال صورة محلية (أثاث)
@@ -485,6 +528,7 @@ ${image.categoryEmoji} *${image.categoryName}*
           parse_mode: 'Markdown',
           ...replyMarkup
         });
+        sentCount++;
       }
       
       // تأخير صغير بين الصور
@@ -496,7 +540,12 @@ ${image.categoryEmoji} *${image.categoryName}*
     // إرسال keyboard للاختيار
     await bot.sendMessage(chatId, '📱 اختر فئة أخرى:', getCategoryKeyboard(selectedSource));
     
-    console.log(`✅ تم إرسال 6 صور من ${images[0].categoryName} [${selectedSource}] → ${msg.from.first_name}`);
+    console.log(`✅ تم إرسال ${sentCount} صور من ${images[0]?.categoryName || categoryKey} [${selectedSource}] → ${msg.from.first_name}`);
+    
+    // إرسال تحذير إذا كان عدد الصور أقل من 6
+    if (sentCount < 6) {
+      await bot.sendMessage(chatId, `⚠️ تم إرسال ${sentCount} صور فقط بسبب فشل بعض الصور. حاول مرة أخرى!`);
+    }
     
   } catch (error) {
     console.error('❌ خطأ تفصيلي:', error);
