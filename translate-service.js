@@ -1,20 +1,26 @@
 /**
  * خدمة ترجمة النصوص من العربية إلى الإنجليزية
- * تستخدم قاموس محلي أولاً ثم MyMemory API كـ fallback
+ * تستخدم قاموس محلي فقط - سريع وموثوق
  */
 
 /**
- * قاموس ترجمة للكلمات الشائعة (أولوية عالية)
+ * قاموس ترجمة شامل
  */
 const DICTIONARY = {
-  // طبيعة
+  // طبيعة ومناظر
+  'طبيعة': 'nature',
+  'طبيعي': 'nature',
+  'منظر': 'landscape',
+  'مناظر': 'landscape',
   'جبال': 'mountains',
   'جبل': 'mountain',
   'غروب': 'sunset',
   'شروق': 'sunrise',
   'بحر': 'ocean sea',
+  'محيط': 'ocean',
   'شاطئ': 'beach',
   'غابة': 'forest',
+  'غابات': 'forest',
   'صحراء': 'desert',
   'سماء': 'sky',
   'نجوم': 'stars',
@@ -22,95 +28,174 @@ const DICTIONARY = {
   'شلال': 'waterfall',
   'نهر': 'river',
   'بحيرة': 'lake',
+  'وادي': 'valley',
+  'كهف': 'cave',
   
-  // مدن
+  // مدن وعمارة
   'مدينة': 'city',
+  'مدن': 'cities',
   'ليل': 'night',
+  'ليلي': 'night',
   'ليلية': 'night',
   'نهار': 'day',
   'شارع': 'street',
+  'شوارع': 'streets',
   'برج': 'tower',
-  
-  // حيوانات
-  'قطة': 'cat',
-  'كلب': 'dog',
-  'طائر': 'bird',
-  'حصان': 'horse',
-  'سمك': 'fish',
-  
-  // ألوان وصفات
-  'ملون': 'colorful',
-  'جميل': 'beautiful',
-  'رائع': 'amazing',
-  'خيالي': 'fantasy',
-  'قديم': 'old ancient',
-  'عصري': 'modern',
-  'كلاسيكي': 'classic',
-  
-  // أشياء
-  'سيارة': 'car',
+  'ابراج': 'towers',
+  'جسر': 'bridge',
+  'مبنى': 'building',
+  'مباني': 'buildings',
   'قصر': 'palace castle',
   'منزل': 'house',
+  'بيت': 'house',
+  
+  // حيوانات
+  'حيوان': 'animal',
+  'حيوانات': 'animals',
+  'قطة': 'cat',
+  'قطط': 'cats',
+  'كلب': 'dog',
+  'كلاب': 'dogs',
+  'طائر': 'bird',
+  'طيور': 'birds',
+  'حصان': 'horse',
+  'خيول': 'horses',
+  'سمك': 'fish',
+  'اسماك': 'fish',
+  'فيل': 'elephant',
+  'اسد': 'lion',
+  'نمر': 'tiger',
+  'دب': 'bear',
+  'ذئب': 'wolf',
+  
+  // ألوان
+  'ابيض': 'white',
+  'اسود': 'black',
+  'احمر': 'red',
+  'ازرق': 'blue',
+  'اخضر': 'green',
+  'اصفر': 'yellow',
+  'برتقالي': 'orange',
+  'بنفسجي': 'purple',
+  'وردي': 'pink',
+  'ذهبي': 'golden',
+  'فضي': 'silver',
+  
+  // صفات
+  'جميل': 'beautiful',
+  'جميلة': 'beautiful',
+  'رائع': 'amazing wonderful',
+  'رائعة': 'amazing',
+  'خيالي': 'fantasy',
+  'خيالية': 'fantasy',
+  'قديم': 'old ancient',
+  'قديمة': 'old',
+  'عصري': 'modern',
+  'عصرية': 'modern',
+  'كلاسيكي': 'classic',
+  'كلاسيكية': 'classic',
+  'فخم': 'luxury',
+  'فخمة': 'luxury',
+  'كبير': 'big large',
+  'كبيرة': 'big',
+  'صغير': 'small',
+  'صغيرة': 'small',
+  'عالي': 'high tall',
+  'عالية': 'high',
+  'واسع': 'wide',
+  'واسعة': 'wide',
+  'ضيق': 'narrow',
+  'مظلم': 'dark',
+  'مظلمة': 'dark',
+  'مضيء': 'bright',
+  'ملون': 'colorful',
+  'لطيف': 'cute',
+  'لطيفة': 'cute',
+  'ساحر': 'charming',
+  'ساحرة': 'charming',
+  
+  // أشياء وأدوات
+  'سيارة': 'car',
+  'سيارات': 'cars',
+  'طائرة': 'airplane',
+  'قارب': 'boat',
+  'دراجة': 'bicycle',
   'زهور': 'flowers',
-  'شجرة': 'tree'
+  'زهرة': 'flower',
+  'ورود': 'roses',
+  'وردة': 'rose',
+  'شجرة': 'tree',
+  'اشجار': 'trees',
+  'نباتات': 'plants',
+  'حديقة': 'garden',
+  
+  // رياضة وألعاب
+  'رياضة': 'sport',
+  'رياضي': 'sport',
+  'رياضية': 'sport',
+  'لعبة': 'game',
+  'العاب': 'games',
+  'كرة': 'ball',
+  'انمي': 'anime',
+  'كرتون': 'cartoon',
+  
+  // فن وتصميم
+  'فن': 'art',
+  'فني': 'art',
+  'فنية': 'art',
+  'رسم': 'painting drawing',
+  'تصميم': 'design',
+  'لوحة': 'painting',
+  'صورة': 'picture image',
+  
+  // أطفال
+  'طفل': 'child kid',
+  'اطفال': 'kids children',
+  'اولاد': 'boys',
+  'بنات': 'girls'
 };
 
 /**
- * ترجمة باستخدام MyMemory API
- */
-async function translateWithAPI(text) {
-  try {
-    const encodedText = encodeURIComponent(text);
-    const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=ar|en`;
-    
-    const response = await fetch(url);
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    if (data.responseStatus === 200 && data.responseData?.translatedText) {
-      return data.responseData.translatedText;
-    }
-    return null;
-  } catch (error) {
-    console.error('❌ MyMemory API error:', error.message);
-    return null;
-  }
-}
-
-/**
  * ترجمة نص من العربية إلى الإنجليزية
+ * يستخدم القاموس المحلي فقط - فوري ودقيق
  */
 export async function translateToEnglish(arabicText) {
   const text = arabicText.trim();
   if (!text) return arabicText;
 
-  // 1️⃣ محاولة الترجمة من القاموس (فوري)
+  // ترجمة الكلمات من القاموس
   const words = text.toLowerCase().split(/\s+/);
   const translatedWords = [];
   
   for (const word of words) {
-    if (DICTIONARY[word]) {
+    // تجاهل حروف الربط
+    if (['في', 'و', 'من', 'إلى', 'على', 'مع', 'عن', 'ال'].includes(word)) {
+      continue;
+    }
+    
+    // إزالة "ال" التعريف من بداية الكلمة
+    let cleanWord = word;
+    if (word.startsWith('ال')) {
+      cleanWord = word.substring(2);
+    }
+    
+    // البحث في القاموس
+    if (DICTIONARY[cleanWord]) {
+      translatedWords.push(DICTIONARY[cleanWord]);
+    } else if (DICTIONARY[word]) {
       translatedWords.push(DICTIONARY[word]);
     }
   }
   
+  // إذا وجدنا ترجمات، استخدمها
   if (translatedWords.length > 0) {
     const result = translatedWords.join(' ');
-    console.log(`✅ قاموس: "${text}" → "${result}"`);
+    console.log(`✅ ترجمة: "${text}" → "${result}"`);
     return result;
   }
 
-  // 2️⃣ محاولة الترجمة عبر API (~500ms)
-  console.log(`🔄 API: "${text}"...`);
-  const apiResult = await translateWithAPI(text);
-  
-  if (apiResult) {
-    console.log(`✅ API: "${text}" → "${apiResult}"`);
-    return apiResult;
-  }
-
-  // 3️⃣ fallback: استخدام النص الأصلي
-  console.warn(`⚠️ فشل: "${text}" → استخدام النص الأصلي`);
+  // fallback: استخدام النص الأصلي (Wallhaven يدعم Unicode)
+  console.log(`⚠️ لم توجد ترجمة لـ "${text}"، استخدام النص الأصلي`);
   return arabicText;
 }
 
@@ -118,24 +203,29 @@ export async function translateToEnglish(arabicText) {
  * اختبار الخدمة
  */
 export async function testTranslationService() {
-  console.log('🧪 اختبار خدمة الترجمة...\n');
+  console.log('🧪 اختبار خدمة الترجمة (قاموس محلي)...\n');
   
   const tests = [
     'غروب',
-    'شروق', 
+    'شروق',
     'جبال',
+    'جبال في الغروب',
     'بحر',
     'مدينة ليلية',
     'قطة جميلة',
-    'منظر خيالي رائع'
+    'سيارة رياضية',
+    'قصر فخم قديم',
+    'منظر طبيعي ساحر',
+    'غابة مظلمة',
+    'زهور ملونة'
   ];
   
   for (const text of tests) {
     const translated = await translateToEnglish(text);
-    console.log(`\n📝 "${text}" → "${translated}"`);
+    console.log(`📝 "${text}" → "${translated}"\n`);
   }
   
-  console.log('\n✅ الاختبار انتهى!');
+  console.log('✅ الاختبار انتهى!');
 }
 
 // اختبار إذا تم تشغيل الملف مباشرة
