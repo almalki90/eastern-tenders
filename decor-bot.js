@@ -419,10 +419,20 @@ ${image.categoryEmoji} *${image.categoryName}*
 📐 الدقة: ${image.resolution}
         `.trim();
         
-        await bot.sendPhoto(chatId, image.url, {
-          caption: caption,
-          parse_mode: 'Markdown'
-        });
+        try {
+          // محاولة إرسال الصورة الأصلية
+          await bot.sendPhoto(chatId, image.url, {
+            caption: caption,
+            parse_mode: 'Markdown'
+          });
+        } catch (photoError) {
+          // في حالة الفشل، استخدام thumbnail
+          console.log(`⚠️ فشل تحميل الصورة الأصلية، استخدام thumbnail...`);
+          await bot.sendPhoto(chatId, image.thumb, {
+            caption: caption + '\n\n⚠️ (نسخة مصغرة)',
+            parse_mode: 'Markdown'
+          });
+        }
         
       } else if (image.isUnsplash || image.isPexels) {
         // إرسال صورة من Unsplash أو Pexels (ديكورات)
