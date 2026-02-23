@@ -406,8 +406,8 @@ bot.on('message', async (msg) => {
     
     try {
       // ترجمة النص إلى الإنجليزية
-      const englishQuery = translateToEnglish(searchQuery);
-      console.log(`🔍 البحث: "${searchQuery}" → "${englishQuery}"`);
+      const englishQuery = await translateToEnglish(searchQuery);
+      console.log(`🔍 البحث: "${searchQuery}" → "${englishQuery}"`); 
       
       // جلب 8 صور
       const images = [];
