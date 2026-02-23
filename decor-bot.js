@@ -28,6 +28,9 @@ const userSourceSelection = {};
 // تخزين حالة البحث المخصص
 const userSearchMode = {};
 
+// تخزين آخر استعلام بحث للمستخدم
+const userLastSearch = {};
+
 /**
  * معلومات الأقسام - مقسمة إلى أثاث وديكورات وورق جدران
  */
@@ -397,9 +400,7 @@ bot.on('message', async (msg) => {
   // إذا كان المستخدم في وضع البحث المخصص
   if (userSearchMode[chatId]) {
     const searchQuery = text.trim();
-    
-    // إلغاء وضع البحث
-    delete userSearchMode[chatId];
+    const selectedSource = userSourceSelection[chatId];
     
     // رسالة تحميل
     const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري البحث...');
@@ -407,7 +408,31 @@ bot.on('message', async (msg) => {
     try {
       // ترجمة النص إلى الإنجليزية
       const englishQuery = await translateToEnglish(searchQuery);
+      
+      // التحقق إذا لم توجد ترجمة
+      if (!englishQuery) {
+        await bot.deleteMessage(chatId, loadingMsg.message_id);
+        
+        await bot.sendMessage(chatId, 
+          `❌ *لم يتم العثور على ترجمة لـ:* "${searchQuery}"\n\n💡 جرب كلمة أخرى من القاموس\n\n🔤 مثال: ثلج، قمر، سحب، نجوم، بحيرة، شلال، زهور، فراشة، ذئب، نسر`,
+          { parse_mode: 'Markdown' }
+        );
+        
+        // الاحتفاظ بالمستخدم في وضع البحث (لا نحذف userSearchMode)
+        return;
+      }
+      
       console.log(`🔍 البحث: "${searchQuery}" → "${englishQuery}"`); 
+      
+      // حفظ آخر استعلام بحث ناجح
+      userLastSearch[chatId] = {
+        arabicQuery: searchQuery,
+        englishQuery: englishQuery,
+        source: selectedSource
+      };
+      
+      // إلغاء وضع البحث بعد نجاح الترجمة
+      delete userSearchMode[chatId]; 
       
       // جلب 8 صور
       const images = [];
@@ -521,14 +546,28 @@ bot.on('message', async (msg) => {
         }
       }
       
-      // إرسال keyboard للاختيار
-      await bot.sendMessage(chatId, '📱 ابحث مرة أخرى أو اختر فئة:', getCategoryKeyboard(selectedSource));
+      // إرسال keyboard مع زر "التالي"
+      const keyboard = {
+        reply_markup: {
+          keyboard: [
+            [{ text: '➡️ التالي' }],
+            [{ text: '🔍 بحث مخصص' }],
+            [{ text: '🎲 مفاجأة' }, { text: '🔙 الأقسام' }]
+          ],
+          resize_keyboard: true
+        }
+      };
+      
+      await bot.sendMessage(chatId, '✅ تم إرسال النتائج!\n\n➡️ اضغط *التالي* للمزيد\n🔍 أو ابحث عن كلمة جديدة', {
+        parse_mode: 'Markdown',
+        ...keyboard
+      });
       
       console.log(`✅ تم إرسال ${sentCount} صور من البحث "${searchQuery}" [${selectedSource}] → ${msg.from.first_name}`);
       
       // إشعار إذا كان العدد أقل من 6
       if (sentCount < 6) {
-        await bot.sendMessage(chatId, `⚠️ تم إرسال ${sentCount} صور فقط بسبب فشل بعض الصور. حاول مرة أخرى!`);
+        await bot.sendMessage(chatId, `⚠️ تم إرسال ${sentCount} صور فقط بسبب فشل بعض الصور.`);
       }
       
     } catch (error) {
@@ -559,6 +598,159 @@ bot.on('message', async (msg) => {
       categoryKey = key;
       break;
     }
+  }
+  
+  // خيار "التالي" - إعادة البحث بنفس الاستعلام
+  if (text?.includes('التالي') || text?.includes('➡️')) {
+    const lastSearch = userLastSearch[chatId];
+    
+    if (!lastSearch) {
+      bot.sendMessage(chatId, '⚠️ لا يوجد بحث سابق.\n\n💡 اضغط 🔍 بحث مخصص أولاً', getCategoryKeyboard(selectedSource));
+      return;
+    }
+    
+    // إعادة البحث بنفس الاستعلام
+    const { arabicQuery, englishQuery, source } = lastSearch;
+    
+    // رسالة تحميل
+    const loadingMsg = await bot.sendMessage(chatId, '⏳ جاري جلب المزيد من الصور...');
+    
+    try {
+      // جلب 8 صور جديدة
+      const images = [];
+      const targetCount = 6;
+      const fetchCount = 8;
+      
+      for (let i = 0; i < fetchCount; i++) {
+        try {
+          let image;
+          
+          if (source === 'wallpapers') {
+            image = await searchWallhaven(englishQuery);
+          } else {
+            image = await searchUnsplash(englishQuery);
+          }
+          
+          images.push(image);
+          
+          if (images.length >= targetCount) break;
+          
+        } catch (fetchError) {
+          console.warn(`⚠️ فشل جلب صورة ${i + 1}:`, fetchError.message);
+        }
+      }
+      
+      // حذف رسالة التحميل
+      await bot.deleteMessage(chatId, loadingMsg.message_id);
+      
+      // التحقق من وجود صور
+      if (images.length === 0) {
+        bot.sendMessage(chatId, 
+          `❌ لم يتم العثور على صور إضافية لـ: *${arabicQuery}*\n\n💡 جرب بحث جديد`,
+          {
+            parse_mode: 'Markdown',
+            ...getCategoryKeyboard(source)
+          }
+        );
+        return;
+      }
+      
+      // إرسال الصور
+      let sentCount = 0;
+      for (let i = 0; i < images.length && sentCount < targetCount; i++) {
+        const image = images[i];
+        
+        if (image.isWallhaven) {
+          const caption = `
+🔍 *بحث: ${arabicQuery}*
+
+📐 الدقة: ${image.resolution}
+          `.trim();
+          
+          try {
+            await bot.sendPhoto(chatId, image.url, {
+              caption: caption,
+              parse_mode: 'Markdown'
+            });
+            sentCount++;
+          } catch (photoError) {
+            try {
+              await bot.sendPhoto(chatId, image.thumb, {
+                caption: caption + '\n\n⚠️ (نسخة مصغرة)',
+                parse_mode: 'Markdown'
+              });
+              sentCount++;
+            } catch (thumbError) {
+              continue;
+            }
+          }
+        } else if (image.isUnsplash) {
+          const caption = `🔍 *بحث: ${arabicQuery}*`.trim();
+          
+          try {
+            await bot.sendPhoto(chatId, image.url, {
+              caption: caption,
+              parse_mode: 'Markdown'
+            });
+            sentCount++;
+          } catch (photoError) {
+            let fallbackUrl = image.url.replace('/regular/', '/small/');
+            
+            try {
+              await bot.sendPhoto(chatId, fallbackUrl, {
+                caption: caption,
+                parse_mode: 'Markdown'
+              });
+              sentCount++;
+            } catch (thumbError) {
+              continue;
+            }
+          }
+        }
+        
+        if (i < images.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+      
+      // إرسال keyboard مع زر "التالي"
+      const keyboard = {
+        reply_markup: {
+          keyboard: [
+            [{ text: '➡️ التالي' }],
+            [{ text: '🔍 بحث مخصص' }],
+            [{ text: '🎲 مفاجأة' }, { text: '🔙 الأقسام' }]
+          ],
+          resize_keyboard: true
+        }
+      };
+      
+      await bot.sendMessage(chatId, '✅ تم إرسال المزيد من النتائج!\n\n➡️ اضغط *التالي* للمزيد\n🔍 أو ابحث عن كلمة جديدة', {
+        parse_mode: 'Markdown',
+        ...keyboard
+      });
+      
+      console.log(`✅ تم إرسال ${sentCount} صور إضافية من البحث "${arabicQuery}"`);
+      
+      if (sentCount < 6) {
+        await bot.sendMessage(chatId, `⚠️ تم إرسال ${sentCount} صور فقط.`);
+      }
+      
+    } catch (error) {
+      console.error('❌ خطأ في جلب المزيد:', error);
+      
+      try {
+        await bot.deleteMessage(chatId, loadingMsg.message_id);
+      } catch (e) {}
+      
+      bot.sendMessage(
+        chatId,
+        `❌ عذراً، حدث خطأ: ${error.message}`,
+        getCategoryKeyboard(source)
+      );
+    }
+    
+    return;
   }
   
   // خيار المفاجأة

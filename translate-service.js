@@ -690,6 +690,7 @@ const DICTIONARY = {
 /**
  * ترجمة نص من العربية إلى الإنجليزية
  * يستخدم القاموس المحلي فقط - فوري ودقيق
+ * @returns {Promise<string|null>} - النص المترجم أو null إذا لم توجد ترجمة
  */
 export async function translateToEnglish(arabicText) {
   const text = arabicText.trim();
@@ -726,9 +727,9 @@ export async function translateToEnglish(arabicText) {
     return result;
   }
 
-  // fallback: استخدام النص الأصلي (Wallhaven يدعم Unicode)
-  console.log(`⚠️ لم توجد ترجمة لـ "${text}"، استخدام النص الأصلي`);
-  return arabicText;
+  // لم توجد أي ترجمة
+  console.log(`⚠️ لم توجد ترجمة لـ "${text}"`);
+  return null;
 }
 
 /**
