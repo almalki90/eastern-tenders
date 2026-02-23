@@ -19,61 +19,81 @@ export const WALLHAVEN_CATEGORIES = {
     emoji: '🌄',
     name: 'مناظر طبيعية',
     description: 'جبال، شواطئ، غابات، صحراء',
-    query: 'nature landscape mountains beach forest'
+    query: 'landscape',
+    categories: '100', // General only
+    purity: '100' // SFW only
   },
   city: {
     emoji: '🏙️',
     name: 'مدن وعمارة',
     description: 'ناطحات سحاب، شوارع ليلية، معالم',
-    query: 'city architecture skyline urban'
+    query: 'city',
+    categories: '100',
+    purity: '100'
   },
   space: {
     emoji: '🌌',
     name: 'فضاء ونجوم',
     description: 'مجرات، كواكب، سماء ليلية',
-    query: 'space galaxy stars planets nebula'
+    query: 'space',
+    categories: '100',
+    purity: '100'
   },
   art: {
     emoji: '🎨',
     name: 'فن وتجريدي',
     description: 'لوحات فنية، تجريدي، ألوان',
-    query: 'art abstract digital painting'
+    query: 'abstract',
+    categories: '100',
+    purity: '100'
   },
   animals: {
     emoji: '🐾',
     name: 'حيوانات',
     description: 'حيوانات برية، طيور، أسماك',
-    query: 'animals wildlife birds'
+    query: 'animals',
+    categories: '100',
+    purity: '100'
   },
   cars: {
     emoji: '🚗',
     name: 'سيارات',
     description: 'سيارات رياضية، كلاسيكية',
-    query: 'cars sports classic vehicle'
+    query: 'car',
+    categories: '100',
+    purity: '100'
   },
   gaming: {
     emoji: '🎮',
     name: 'ألعاب وأنمي',
     description: 'ألعاب فيديو، أنمي، شخصيات',
-    query: 'gaming anime video games'
+    query: 'anime',
+    categories: '010', // Anime category
+    purity: '100'
   },
   flowers: {
     emoji: '🌸',
     name: 'زهور ونباتات',
     description: 'زهور، نباتات، حدائق',
-    query: 'flowers plants garden botanical'
+    query: 'flowers',
+    categories: '100',
+    purity: '100'
   },
   ocean: {
     emoji: '🌊',
     name: 'بحر ومحيطات',
     description: 'بحار، محيطات، شواطئ',
-    query: 'ocean sea underwater marine'
+    query: 'ocean',
+    categories: '100',
+    purity: '100'
   },
   kids: {
     emoji: '👶',
     name: 'أطفال وكرتون',
     description: 'كرتون، Disney، شخصيات لطيفة',
-    query: 'cartoon cute kids disney pixar'
+    query: 'cartoon',
+    categories: '010', // Anime category (cartoon/cute style)
+    purity: '100'
   }
 };
 
@@ -95,8 +115,8 @@ export async function getRandomWallhavenImage(categoryKey) {
     const params = {
       apikey: WALLHAVEN_API_KEY,
       q: category.query,
-      categories: '100', // General فقط (لا anime/people)
-      purity: '100', // SFW فقط
+      categories: category.categories || '100', // استخدام الفئة المحددة
+      purity: category.purity || '100', // SFW فقط
       sorting: 'random',
       atleast: '1920x1080', // دقة عالية على الأقل
       page: 1
