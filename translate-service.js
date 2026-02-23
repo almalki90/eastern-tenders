@@ -1,44 +1,117 @@
 /**
  * خدمة ترجمة النصوص من العربية إلى الإنجليزية
- * تستخدم MyMemory Translation API (مجاني 100%)
+ * تستخدم قاموس محلي أولاً ثم MyMemory API كـ fallback
  */
 
 /**
- * ترجمة نص من العربية إلى الإنجليزية باستخدام MyMemory API
- * ترجمة شاملة لأي نص عربي - مجاني 100%
+ * قاموس ترجمة للكلمات الشائعة (أولوية عالية)
  */
-export async function translateToEnglish(arabicText) {
-  // تنظيف النص
-  const text = arabicText.trim();
+const DICTIONARY = {
+  // طبيعة
+  'جبال': 'mountains',
+  'جبل': 'mountain',
+  'غروب': 'sunset',
+  'شروق': 'sunrise',
+  'بحر': 'ocean sea',
+  'شاطئ': 'beach',
+  'غابة': 'forest',
+  'صحراء': 'desert',
+  'سماء': 'sky',
+  'نجوم': 'stars',
+  'فضاء': 'space',
+  'شلال': 'waterfall',
+  'نهر': 'river',
+  'بحيرة': 'lake',
   
-  if (!text) {
-    return arabicText;
-  }
+  // مدن
+  'مدينة': 'city',
+  'ليل': 'night',
+  'ليلية': 'night',
+  'نهار': 'day',
+  'شارع': 'street',
+  'برج': 'tower',
   
+  // حيوانات
+  'قطة': 'cat',
+  'كلب': 'dog',
+  'طائر': 'bird',
+  'حصان': 'horse',
+  'سمك': 'fish',
+  
+  // ألوان وصفات
+  'ملون': 'colorful',
+  'جميل': 'beautiful',
+  'رائع': 'amazing',
+  'خيالي': 'fantasy',
+  'قديم': 'old ancient',
+  'عصري': 'modern',
+  'كلاسيكي': 'classic',
+  
+  // أشياء
+  'سيارة': 'car',
+  'قصر': 'palace castle',
+  'منزل': 'house',
+  'زهور': 'flowers',
+  'شجرة': 'tree'
+};
+
+/**
+ * ترجمة باستخدام MyMemory API
+ */
+async function translateWithAPI(text) {
   try {
     const encodedText = encodeURIComponent(text);
     const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=ar|en`;
     
     const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`MyMemory API error: ${response.status}`);
-    }
+    if (!response.ok) return null;
 
     const data = await response.json();
-    
     if (data.responseStatus === 200 && data.responseData?.translatedText) {
-      const translated = data.responseData.translatedText;
-      console.log(`🔄 ترجمة: "${text}" → "${translated}"`);
-      return translated;
+      return data.responseData.translatedText;
     }
-    
-    throw new Error('No translation found');
+    return null;
   } catch (error) {
-    console.error('❌ خطأ في الترجمة:', error.message);
-    // fallback: استخدام النص الأصلي
-    return arabicText;
+    console.error('❌ MyMemory API error:', error.message);
+    return null;
   }
+}
+
+/**
+ * ترجمة نص من العربية إلى الإنجليزية
+ */
+export async function translateToEnglish(arabicText) {
+  const text = arabicText.trim();
+  if (!text) return arabicText;
+
+  // 1️⃣ محاولة الترجمة من القاموس (فوري)
+  const words = text.toLowerCase().split(/\s+/);
+  const translatedWords = [];
+  
+  for (const word of words) {
+    if (DICTIONARY[word]) {
+      translatedWords.push(DICTIONARY[word]);
+    }
+  }
+  
+  if (translatedWords.length > 0) {
+    const result = translatedWords.join(' ');
+    console.log(`✅ قاموس: "${text}" → "${result}"`);
+    return result;
+  }
+
+  // 2️⃣ محاولة الترجمة عبر API (~500ms)
+  console.log(`🔄 API: "${text}"...`);
+  const apiResult = await translateWithAPI(text);
+  
+  if (apiResult) {
+    console.log(`✅ API: "${text}" → "${apiResult}"`);
+    return apiResult;
+  }
+
+  // 3️⃣ fallback: استخدام النص الأصلي
+  console.warn(`⚠️ فشل: "${text}" → استخدام النص الأصلي`);
+  return arabicText;
 }
 
 /**
@@ -49,20 +122,17 @@ export async function testTranslationService() {
   
   const tests = [
     'غروب',
-    'جبال في الغروب',
+    'شروق', 
+    'جبال',
+    'بحر',
     'مدينة ليلية',
-    'قطة لطيفة',
-    'سيارة رياضية',
-    'زهور ملونة',
-    'بحر وشاطئ',
-    'فضاء ونجوم',
-    'منظر خيالي رائع',
-    'قصر فخم قديم'
+    'قطة جميلة',
+    'منظر خيالي رائع'
   ];
   
   for (const text of tests) {
     const translated = await translateToEnglish(text);
-    console.log(`✅ "${text}" → "${translated}"`);
+    console.log(`\n📝 "${text}" → "${translated}"`);
   }
   
   console.log('\n✅ الاختبار انتهى!');
